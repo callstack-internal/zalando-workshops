@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: '@react-native',
+  extends: ['@react-native', 'plugin:react-hooks/recommended'],
   rules: {
     'jest/expect-expect': [
       'error',
