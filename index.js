@@ -2,11 +2,11 @@
  * @format
  */
 
-import { AppRegistry, StyleSheet } from 'react-native';
+import {AppRegistry, StyleSheet} from 'react-native';
 import App from './App';
-import { name as appName } from './app.json';
+import {name as appName} from './app.json';
 import 'react-native-gesture-handler';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import React from 'react';
 
 function Main() {

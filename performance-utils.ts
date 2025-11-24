@@ -1,5 +1,31 @@
 // Performance measurement utilities with start/stop API
-import performance from 'react-native-performance';
+import performance, {PerformanceObserver} from 'react-native-performance';
+
+// Observe native launch marks to derive higher-level measures
+if (typeof PerformanceObserver !== 'undefined') {
+  const nativeObserver = new PerformanceObserver(list => {
+    const hasRunJsBundleEnd = list
+      .getEntries()
+      .some(entry => entry.name === 'runJsBundleEnd');
+    if (hasRunJsBundleEnd) {
+      performance.measure(
+        'nativeLaunch',
+        'nativeLaunchStart',
+        'nativeLaunchEnd',
+      );
+      performance.measure('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+    }
+  });
+  nativeObserver.observe({type: 'react-native-mark', buffered: true});
+
+  // Log every measure duration for quick visibility
+  const measureObserver = new PerformanceObserver(list => {
+    list.getEntries().forEach(entry => {
+      console.log(`[Performance] ${entry.name}: ${entry.duration}ms`);
+    });
+  });
+  measureObserver.observe({type: 'measure', buffered: true});
+}
 
 const performanceUtils = {
   // Start measuring a performance metric
@@ -35,9 +61,6 @@ const performanceUtils = {
         // Get the measurement and log it
         const entries = performance.getEntriesByName(measureName);
         if (entries.length > 0) {
-          const entry = entries[entries.length - 1]; // Get the most recent entry
-          console.log(`[Performance] ${name}: ${entry.duration.toFixed(2)}ms`);
-
           // Clean up marks and measures to avoid memory leaks
           performance.clearMarks(startMarkName);
           performance.clearMarks(endMarkName);
