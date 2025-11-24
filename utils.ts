@@ -1,12 +1,12 @@
-import moment from 'moment';
+import {differenceInDays, format, parseISO} from 'date-fns';
 
 export const formatDate = (dateString: string) => {
-  const date = moment(dateString);
-  const now = moment();
-  const diffDays = Math.abs(now.diff(date, 'days'));
+  const date = parseISO(dateString);
+  const now = new Date();
+  const diffDays = Math.abs(differenceInDays(now, date));
 
-  const dayOfWeek = date.format('dddd');
-  const monthDayYear = date.format('MMMM D, YYYY');
+  const dayOfWeek = format(date, 'EEEE');
+  const monthDayYear = format(date, 'MMMM d, yyyy');
 
   let relativeText = '';
   if (diffDays === 0) {

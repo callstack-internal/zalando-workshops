@@ -5,7 +5,6 @@ const comments: Comment[] = require('./mocks/comments.json');
 
 import {configureStore, createSlice, createSelector} from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {cloneDeep} from 'lodash';
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
@@ -56,14 +55,12 @@ const favoritesSlice = createSlice({
   reducers: {
     toggleFavorite: (state, action) => {
       const bookId = action.payload;
-      const clonedFavorites = cloneDeep(state.favoriteBookIds);
-      const isFavorite = clonedFavorites.includes(bookId);
+      const isFavorite = state.favoriteBookIds.includes(bookId);
 
       if (isFavorite) {
-        state.favoriteBookIds = clonedFavorites.filter(id => id !== bookId);
+        state.favoriteBookIds = state.favoriteBookIds.filter(id => id !== bookId);
       } else {
-        clonedFavorites.push(bookId);
-        state.favoriteBookIds = clonedFavorites;
+        state.favoriteBookIds.push(bookId);
       }
 
       // Persist to AsyncStorage
