@@ -1,13 +1,12 @@
-export const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+import moment from 'moment';
 
-  const dayOfWeek = date.toLocaleDateString('en-US', {weekday: 'long'});
-  const month = date.toLocaleDateString('en-US', {month: 'long'});
-  const day = date.getDate();
-  const year = date.getFullYear();
+export const formatDate = (dateString: string) => {
+  const date = moment(dateString);
+  const now = moment();
+  const diffDays = Math.abs(now.diff(date, 'days'));
+
+  const dayOfWeek = date.format('dddd');
+  const monthDayYear = date.format('MMMM D, YYYY');
 
   let relativeText = '';
   if (diffDays === 0) {
@@ -24,5 +23,5 @@ export const formatDate = (dateString: string) => {
     relativeText = `${Math.floor(diffDays / 365)} years ago`;
   }
 
-  return `${dayOfWeek}, ${month} ${day}, ${year} (${relativeText})`;
+  return `${dayOfWeek}, ${monthDayYear} (${relativeText})`;
 };
