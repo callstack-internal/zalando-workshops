@@ -6,5 +6,17 @@ module.exports = {
       'error',
       { assertFunctionNames: ['expect', 'measureRenders'] },
     ],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'date-fns',
+            message:
+              'Use per-method imports (e.g. date-fns/format) instead of importing from date-fns directly.',
+          },
+        ],
+      },
+    ],
   },
 };
