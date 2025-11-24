@@ -78,3 +78,5 @@ yarn-error.log
 .rock/
 # Reassure output directory
 .reassure
+
+metro-stats.json
