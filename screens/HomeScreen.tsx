@@ -11,6 +11,7 @@ import {useAppSelector, useTranslation} from '../hooks';
 import {selectBooksById, selectBookIds, selectAuthorsById, selectFavoriteBookIds} from '../store';
 import BookListItem from '../components/BookListItem';
 import performanceUtils from '../performance-utils';
+import {localeCompare} from '../stringUtils';
 
 type SortKey = 'score' | 'popular' | 'title' | 'author';
 
@@ -89,9 +90,10 @@ export default function HomeScreen() {
           }
           return b.rating - a.rating;
         case 'title':
-          return a.title.localeCompare(b.title);
+          return localeCompare(a.title, b.title);
         case 'author':
-          return (authorsById[a.authorId]?.name ?? '').localeCompare(
+          return localeCompare(
+            authorsById[a.authorId]?.name ?? '',
             authorsById[b.authorId]?.name ?? '',
           );
         case 'score':
