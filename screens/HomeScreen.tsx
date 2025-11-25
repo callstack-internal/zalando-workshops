@@ -1,12 +1,29 @@
 import React, {useState, useMemo, useEffect} from 'react';
-import {View, Text, FlatList, TextInput, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import {useAppSelector} from '../hooks';
 import {selectBooks, selectAuthors} from '../store';
 import BookListItem from '../components/BookListItem';
 import performanceUtils from '../performance-utils';
 
+const sortOptions = [
+  {key: 'score', label: 'Score'},
+  {key: 'popular', label: 'Most popular'},
+  {key: 'title', label: 'Title'},
+  {key: 'author', label: 'Author'},
+] as const;
+
+type SortKey = (typeof sortOptions)[number]['key'];
+
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<SortKey>('score');
   const books = useAppSelector(selectBooks);
   const authors = useAppSelector(selectAuthors);
 
@@ -18,6 +35,14 @@ export default function HomeScreen() {
   useEffect(() => {
     performanceUtils.stop('app-login');
   }, []);
+
+  const authorsById = useMemo(() => {
+    const map: Record<string, string> = {};
+    authors.forEach(author => {
+      map[author.id] = author.name;
+    });
+    return map;
+  }, [authors]);
 
   const favoritesProcessingData = useMemo(() => {
     const favoriteBooks = favoriteBookIds
@@ -46,26 +71,42 @@ export default function HomeScreen() {
   const filteredBookIds = useMemo(() => {
     performanceUtils.start('search-filter');
 
-    if (!search.trim()) {
-      const allBookIds = books.map(book => book.id);
-      performanceUtils.stop('search-filter');
-      return allBookIds;
-    }
+    const trimmedSearch = search.trim().toLowerCase();
+    const filteredBooks = trimmedSearch
+      ? books.filter(book => {
+          const authorName = authorsById[book.authorId] ?? '';
+          return (
+            book.title.toLowerCase().includes(trimmedSearch) ||
+            authorName.toLowerCase().includes(trimmedSearch)
+          );
+        })
+      : books;
 
-    const lower = search.toLowerCase();
-    const filteredBooks = books
-      .filter(book => {
-        const author = authors.find(a => a.id === book.authorId);
-        return (
-          book.title.toLowerCase().includes(lower) ||
-          (author && author.name.toLowerCase().includes(lower))
-        );
-      })
-      .map(book => book.id);
+    const sortedBooks = [...filteredBooks].sort((a, b) => {
+      switch (sortBy) {
+        case 'popular':
+          if (b.votes !== a.votes) {
+            return b.votes - a.votes;
+          }
+          return b.rating - a.rating;
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'author':
+          return (authorsById[a.authorId] ?? '').localeCompare(
+            authorsById[b.authorId] ?? '',
+          );
+        case 'score':
+        default:
+          if (b.rating !== a.rating) {
+            return b.rating - a.rating;
+          }
+          return b.votes - a.votes;
+      }
+    });
 
     performanceUtils.stop('search-filter');
-    return filteredBooks;
-  }, [search, books, authors]);
+    return sortedBooks.map(book => book.id);
+  }, [search, books, authorsById, sortBy]);
 
   const bookStats = useMemo(() => {
     const stats = {
@@ -96,6 +137,31 @@ export default function HomeScreen() {
         Showing {bookStats.filtered} of {bookStats.total} books | ❤️{' '}
         {bookStats.favorites} favorites
       </Text>
+      <View style={styles.sortContainer}>
+        <Text style={styles.sortLabel}>Sort by:</Text>
+        <View style={styles.sortOptions}>
+          {sortOptions.map(option => {
+            const isActive = option.key === sortBy;
+            return (
+              <TouchableOpacity
+                key={option.key}
+                style={[
+                  styles.sortOption,
+                  isActive && styles.sortOptionActive,
+                ]}
+                onPress={() => setSortBy(option.key)}>
+                <Text
+                  style={[
+                    styles.sortOptionText,
+                    isActive && styles.sortOptionTextActive,
+                  ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
       <FlatList
         data={filteredBookIds}
         renderItem={({item}) => (
@@ -178,4 +244,42 @@ const styles = StyleSheet.create({
   },
 
   centered: {textAlign: 'center', margin: 8},
+  sortContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginHorizontal: 12,
+    marginBottom: 8,
+  },
+  sortLabel: {
+    fontSize: 14,
+    color: '#444',
+    marginRight: 8,
+  },
+  sortOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  sortOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#d4d7e2',
+    marginTop: 6,
+    marginRight: 8,
+  },
+  sortOptionActive: {
+    backgroundColor: '#222',
+    borderColor: '#222',
+  },
+  sortOptionText: {
+    fontSize: 13,
+    color: '#444',
+  },
+  sortOptionTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
 });
