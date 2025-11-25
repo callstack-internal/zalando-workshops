@@ -11,7 +11,7 @@
     "bundle:android": "rock bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --sourcemap-output android/app/src/main/assets/index.android.bundle.map",
     "bundle:ios": "rock bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --sourcemap-output ios/main.jsbundle.map",
     "bundle:discover": "npx react-native-bundle-discovery server metro-stats.json",
-    "downloadtrace:android": "npx react-native-release-profiler --fromDownload --app-id com.performanceworkshops --sourcemap-path android/app/src/main/assets/index.android.bundle.map",
+    "downloadtrace:android": "npx react-native-release-profiler --fromDownload --appId com.performanceworkshops --sourcemap-path android/app/src/main/assets/index.android.bundle.map",
     "test:perf": "reassure",
     "test:perf:baseline": "reassure --baseline",
     "test:perf:check-stability": "reassure check-stability"
