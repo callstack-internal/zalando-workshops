@@ -26,7 +26,7 @@ const BooksRoute = () => {
     <FlatList
       data={favoriteBookIds}
       renderItem={({item}) => (
-        <BookListItem id={item} favoriteBookIds={favoriteBookIds} />
+        <BookListItem id={item} />
       )}
       keyExtractor={item => item}
       contentContainerStyle={{paddingVertical: 8}}
@@ -304,7 +304,6 @@ const AuthorsRoute = () => {
             <BookListItem
               key={book.id}
               id={book.id}
-              favoriteBookIds={favoriteBookIds}
             />
           ))}
         </View>
