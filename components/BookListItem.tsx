@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useAppSelector, useAppDispatch} from '../hooks';
 import {
@@ -26,12 +26,18 @@ const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
 
   const isFavorite = useMemo(() => {
     const isBookFavorite = favoriteBookIds.includes(id);
-    performanceUtils.stop('toggle-favorite');
+
     return isBookFavorite;
   }, [favoriteBookIds, id]);
 
+  useEffect(() => {
+    if(isFavorite) {
+      performanceUtils.stop(`toggle-favorite-${id}`);
+    }
+  }, [isFavorite])
+
   const handleToggleFavorite = () => {
-    performanceUtils.start('toggle-favorite');
+    performanceUtils.start(`toggle-favorite-${id}`);
     dispatch(toggleFavorite(id));
   };
 
