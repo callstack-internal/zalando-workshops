@@ -5,6 +5,7 @@ const comments: Comment[] = require('./mocks/comments.json');
 
 import {configureStore, createSlice, createSelector} from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Language} from './translations';
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
@@ -32,6 +33,7 @@ const settingsSlice = createSlice({
   initialState: {
     devPanelEnabled: false,
     fabEnabled: false,
+    language: 'en' as Language,
   },
   reducers: {
     toggleDevPanel: state => {
@@ -43,6 +45,10 @@ const settingsSlice = createSlice({
     },
     setFabEnabled: (state, action) => {
       state.fabEnabled = action.payload;
+    },
+    setLanguage: (state, action) => {
+      state.language = action.payload;
+      AsyncStorage.setItem('language', action.payload);
     },
   },
 });
@@ -75,7 +81,7 @@ const favoritesSlice = createSlice({
   },
 });
 
-export const {toggleDevPanel, toggleFab, setFabEnabled} = settingsSlice.actions;
+export const {toggleDevPanel, toggleFab, setFabEnabled, setLanguage} = settingsSlice.actions;
 export const {toggleFavorite, setFavoriteBookIds} = favoritesSlice.actions;
 
 export const store = configureStore({
@@ -116,6 +122,9 @@ export const selectDevPanelEnabled = (state: RootState): boolean =>
 
 export const selectFabEnabled = (state: RootState): boolean =>
   state.settings.fabEnabled;
+
+export const selectLanguage = (state: RootState): Language =>
+  state.settings.language;
 
 /** Favorites selectors */
 export const selectIsBookFavorite = (

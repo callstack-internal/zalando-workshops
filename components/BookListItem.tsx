@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {useAppSelector, useAppDispatch} from '../hooks';
+import {useAppSelector, useAppDispatch, useTranslation} from '../hooks';
 import {
   selectBookById,
   selectAuthorById,
@@ -17,6 +17,7 @@ interface BookListItemProps {
 
 const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
   const dispatch = useAppDispatch();
+  const {t} = useTranslation();
   const book = useAppSelector(state => selectBookById(state, id));
   const authorName = useAppSelector(
     state => selectAuthorById(state, book?.authorId ?? '')?.name,
@@ -47,18 +48,18 @@ const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
         <Text style={styles.title}>{book?.title}</Text>
         <Text style={styles.author}>{authorName}</Text>
         <Text style={styles.date}>
-          Published:{' '}
-          {book?.publishedDate ? formatDate(book.publishedDate) : 'Unknown'}
+          {t('published')}:{' '}
+          {book?.publishedDate ? formatDate(book.publishedDate) : t('unknown')}
         </Text>
         <Text style={styles.lastRead}>
-          Last read: {book?.lastRead ? formatDate(book.lastRead) : 'Never'}
+          {t('lastRead')}: {book?.lastRead ? formatDate(book.lastRead) : t('never')}
         </Text>
         <Text style={styles.rating}>
           {book
             ? book.votes > 0
-              ? `Rating: ${book.rating.toFixed(2)} (${book.votes.toLocaleString()} votes)`
-              : 'Not rated yet'
-            : 'Loading...'}
+              ? `${t('rating')}: ${book.rating.toFixed(2)} (${book.votes.toLocaleString()} ${t('votes')})`
+              : t('notRatedYet')
+            : t('loading')}
         </Text>
         <Text style={styles.comment}>
           {lastComment?.author}: {lastComment?.content?.slice(0, 30)}

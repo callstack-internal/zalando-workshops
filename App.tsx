@@ -7,12 +7,13 @@ import FavoritesScreen from './screens/FavoritesScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
 import {Provider} from 'react-redux';
-import {useAppSelector, useAppDispatch} from './hooks';
+import {useAppSelector, useAppDispatch, useTranslation} from './hooks';
 import {
   store,
   selectFabEnabled,
   setFabEnabled,
   setFavoriteBookIds,
+  setLanguage,
 } from './store';
 import DevPanel from './components/DevPanel';
 import HeaderMenu from './components/HeaderMenu';
@@ -24,6 +25,7 @@ function AppContent() {
   const [devPanelVisible, setDevPanelVisible] = useState(false);
   const fabEnabled = useAppSelector(selectFabEnabled);
   const dispatch = useAppDispatch();
+  const {t} = useTranslation();
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -38,6 +40,12 @@ function AppContent() {
         const savedFavorites = await AsyncStorage.getItem('favoriteBookIds');
         if (savedFavorites !== null) {
           dispatch(setFavoriteBookIds(JSON.parse(savedFavorites)));
+        }
+
+        // Load language setting
+        const savedLanguage = await AsyncStorage.getItem('language');
+        if (savedLanguage !== null) {
+          dispatch(setLanguage(savedLanguage));
         }
       } catch (error) {
         console.log('Error loading settings:', error);
@@ -54,7 +62,7 @@ function AppContent() {
             name="Start"
             component={StartScreen}
             options={{
-              title: 'Performance Workshop',
+              title: t('performanceWorkshop'),
               headerRight: () => <HeaderMenu />,
             }}
           />
@@ -62,16 +70,20 @@ function AppContent() {
             name="Home"
             component={HomeScreen}
             options={{
-              title: 'Books',
+              title: t('booksHeader'),
               headerRight: () => <HeaderMenu />,
             }}
           />
           <Stack.Screen
             name="Favorites"
             component={FavoritesScreen}
-            options={{title: 'Favorite books and authors'}}
+            options={{title: t('favoriteBooksAndAuthors')}}
           />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{title: t('settings')}}
+          />
         </Stack.Navigator>
       </NavigationContainer>
       {/* Floating Debug Button - only show if enabled */}
