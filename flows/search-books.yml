@@ -6,7 +6,7 @@ appId: com.performanceworkshops
 - assertVisible: "Books"
 - tapOn:
     id: "search-input"
-- inputText: "of"
+- inputText: "of a young"
 - assertVisible: "The Diary of a Young Girl"
 - swipe:
     direction: UP
