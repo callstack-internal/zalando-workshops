@@ -5,6 +5,8 @@ export interface Book {
   genre: string;
   publishedDate: string;
   lastRead: string;
+  rating: number;
+  votes: number;
 }
 
 export interface Author {

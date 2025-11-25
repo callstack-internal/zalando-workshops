@@ -47,6 +47,13 @@ const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
         <Text style={styles.lastRead}>
           Last read: {book?.lastRead ? formatDate(book.lastRead) : 'Never'}
         </Text>
+        <Text style={styles.rating}>
+          {book
+            ? book.votes > 0
+              ? `Rating: ${book.rating.toFixed(2)} (${book.votes.toLocaleString()} votes)`
+              : 'Not rated yet'
+            : 'Loading...'}
+        </Text>
         <Text style={styles.comment}>
           {lastComment?.author}: {lastComment?.content?.slice(0, 30)}
           {lastComment?.content?.length > 30 ? '…' : ''}
@@ -100,6 +107,11 @@ const styles = StyleSheet.create({
   lastRead: {
     fontSize: 12,
     color: '#666',
+    marginBottom: 6,
+  },
+  rating: {
+    fontSize: 12,
+    color: '#333',
     marginBottom: 6,
   },
   comment: {
