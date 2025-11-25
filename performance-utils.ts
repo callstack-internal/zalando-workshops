@@ -27,12 +27,15 @@ if (typeof PerformanceObserver !== 'undefined') {
   measureObserver.observe({type: 'measure', buffered: true});
 }
 
+const activeStartMarks = new Set<string>();
+
 const performanceUtils = {
   // Start measuring a performance metric
   start: (name: string) => {
     if (performance && performance.mark) {
       const startMarkName = `${name}-start`;
       performance.mark(startMarkName);
+      activeStartMarks.add(startMarkName);
     } else {
       console.warn('[Performance] Performance API not available');
     }
@@ -42,6 +45,11 @@ const performanceUtils = {
   stop: (name: string) => {
     if (performance && performance.mark && performance.measure) {
       const startMarkName = `${name}-start`;
+      if (!activeStartMarks.has(startMarkName)) {
+        return;
+      }
+      activeStartMarks.delete(startMarkName);
+
       const endMarkName = `${name}-end`;
       const measureName = name;
 
