@@ -35,7 +35,7 @@ Prepare a strategy how to approach the problem.
 
 ## Baseline
 
-## Part 1
+### Part 1
 1. Open React Devtools -> Profiler
 2. Open settings and check "Highlight updates when components render"
 3. Start profiling
@@ -44,7 +44,7 @@ Prepare a strategy how to approach the problem.
 6. Stop profiling
 7. Analyze the profiler output - what do you see?
 
-## Part 2
+### Part 2
 1. Disable "Highlight updates when components render"
 2. Run command
 ```shell
@@ -54,54 +54,63 @@ flashlight measure
 4. When the app is detected, press "Start measuring"
 5. Change the language
 6. Once everything recomputed, Stop measuring
-7. Repeat the same scenario two more times to have 3 measurements
-8. Download the report results
+7. **Do not stop the server or close Flashlight**
+
+## The fix
+Reset the navigation state on language change so the screens in the stack are killed.
+
+<details>
+  <summary>Solution</summary>
+  
+  Reset the navigation using a method from `react-navigation`:
+  ```diff
+  diff --git a/screens/SettingsScreen.tsx b/screens/SettingsScreen.tsx
+  index 5814266..fbb2316 100644
+  --- a/screens/SettingsScreen.tsx
+  +++ b/screens/SettingsScreen.tsx
+  @@ -3,14 +3,27 @@ import {View, Text, Switch, StyleSheet, TouchableOpacity} from 'react-native';
+  import {useAppSelector, useAppDispatch, useTranslation} from '../hooks';
+  import {selectFabEnabled, toggleFab, setLanguage} from '../store';
+  import {Language} from '../translations';
+  +import {NativeStackScreenProps} from '@react-navigation/native-stack';
+  +import {RootStackParamList} from './types';
+  +import {CommonActions} from '@react-navigation/native';
+  
+  -const SettingsScreen = () => {
+  +type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+  +
+  +const SettingsScreen = ({navigation}: Props) => {
+    const dispatch = useAppDispatch();
+    const fabEnabled = useAppSelector(selectFabEnabled);
+    const {t, language} = useTranslation();
+  
+    const handleLanguageChange = (newLanguage: Language) => {
+      dispatch(setLanguage(newLanguage));
+  +
+  +    // Reset navigation stack to Home screen
+  +    navigation.dispatch(
+  +      CommonActions.reset({
+  +        index: 0,
+  +        routes: [{name: 'Home'}],
+  +      }),
+  +    );
+    };
+  
+    return (
+  ```
+  Into path import:
+  ```
+    import {differenceInDays} from 'date-fns/differenceInDays';
+    import {format} from 'date-fns/format';
+    import {parseISO} from 'date-fns/parseISO';
+  ```
+</details>
 
 
 ## Verification
-1. Apply the diff to the codebase:
-```diff
-diff --git a/performance-utils.ts b/performance-utils.ts
-index 6eee966..15f82b9 100644
---- a/performance-utils.ts
-+++ b/performance-utils.ts
-@@ -1,4 +1,5 @@
- // Performance measurement utilities with start/stop API
-+import { Alert } from 'react-native';
- import performance, {PerformanceObserver} from 'react-native-performance';
- 
- // Observe native launch marks to derive higher-level measures
-@@ -64,7 +65,10 @@ const performanceUtils = {
- 
-       try {
-         // Measure between start and end marks
--        performance.measure(measureName, startMarkName, endMarkName);
-+        const measure = performance.measure(measureName, startMarkName, endMarkName);
-+        if(measureName === 'app-login') {
-+          Alert.alert(measure.duration.toString());
-+        }
- 
-         // Get the measurement and log it
-         const entries = performance.getEntriesByName(measureName);
-```
-2. Build the app in release mode:
-```shell
-cd android
-./gradlew assembleRelease
-```
-3. Drag and drop the generated `.apk` in the emulator (you can also use `artifacts/exercise-4.apk`)
-4. Open the app and go to Settings screen
-5. Enable "Show Debug FAB" and go back to login screen
-6. Open debug FAB, start the profiling
-7. Once you are navigated, validate the `app-login` time in the Alert
-8. Open debug FAB again and stop profiling
-9. In terminal, run
-```shell
-npm run bundle:android
-```
-10. In terminal, run
-```shell
-npm run downloadtrace:android
-```
-11. The profile will be saved in the root of your project
-12. Upload it into SpeedScope and compare the output with the one from debug
+1. Repeat the **Part 1** from the Baseline
+2. Verify if highlighting is still heavily visible
+3. Go to `android` folder and run `./gradlew assembleRelease`
+4. Drag & Drop new artifact
+5. Repeat the **Part 2** from the Baseline, starting from point 4
+6. Compare the Flashlight results. What are your conclusions? 
