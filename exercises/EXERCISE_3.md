@@ -1,4 +1,4 @@
-# Exercise 2: Speed up adding to favorites
+# Exercise 3: Speed up adding to favorites
 
 ## Exercise overview
 - Estimated time: 30mins
@@ -60,6 +60,48 @@ Normalize the data to avoid loops heavy loops on big arrays.
   
   1. Apply the following diff
   ```diff
+diff --git a/screens/FavoritesScreen.tsx b/screens/FavoritesScreen.tsx
+index 5ab5a8f..f660680 100644
+--- a/screens/FavoritesScreen.tsx
++++ b/screens/FavoritesScreen.tsx
+@@ -2,13 +2,11 @@ import React, {useMemo, useState} from 'react';
+ import {View, Text, FlatList, StyleSheet} from 'react-native';
+ import TabView, {SceneMap} from 'react-native-bottom-tabs';
+ import {useAppSelector, useTranslation} from '../hooks';
+-import {selectBooks, selectAuthors} from '../store';
++import {selectBooks, selectAuthors, selectFavoriteBookIds} from '../store';
+ import BookListItem from '../components/BookListItem';
+ 
+ const BooksRoute = () => {
+-  const favoriteBookIds = useAppSelector(
+-    state => state.favorites.favoriteBookIds,
+-  );
++  const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
+   const {t} = useTranslation();
+ 
+   if (favoriteBookIds.length === 0) {
+@@ -34,9 +32,7 @@ const BooksRoute = () => {
+ };
+ 
+ const AuthorsRoute = () => {
+-  const favoriteBookIds = useAppSelector(
+-    state => state.favorites.favoriteBookIds,
+-  );
++  const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
+   const books = useAppSelector(selectBooks);
+   const authors = useAppSelector(selectAuthors);
+   const {t} = useTranslation();
+@@ -332,9 +328,7 @@ const renderScene = SceneMap({
+ });
+ 
+ const FavoritesScreen = () => {
+-  const favoriteBookIds = useAppSelector(
+-    state => state.favorites.favoriteBookIds,
+-  );
++  const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
+   const {t} = useTranslation();
+ 
+   const [index, setIndex] = useState(0);
 diff --git a/screens/HomeScreen.tsx b/screens/HomeScreen.tsx
 index 3719b39..d7040ee 100644
 --- a/screens/HomeScreen.tsx
