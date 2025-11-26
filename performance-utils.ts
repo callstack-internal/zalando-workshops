@@ -1,5 +1,4 @@
 // Performance measurement utilities with start/stop API
-import { Alert } from 'react-native';
 import performance, {PerformanceObserver} from 'react-native-performance';
 
 // Observe native launch marks to derive higher-level measures
@@ -65,10 +64,7 @@ const performanceUtils = {
 
       try {
         // Measure between start and end marks
-        const measure = performance.measure(measureName, startMarkName, endMarkName);
-        if(measureName === 'app-login') {
-          Alert.alert(measure.duration.toString());
-        }
+        performance.measure(measureName, startMarkName, endMarkName);
 
         // Get the measurement and log it
         const entries = performance.getEntriesByName(measureName);
