@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {useAppSelector, useTranslation} from '../hooks';
-import {selectBooks, selectAuthors} from '../store';
+import {selectBooksById, selectBookIds, selectAuthorsById, selectFavoriteBookIds} from '../store';
 import BookListItem from '../components/BookListItem';
 import performanceUtils from '../performance-utils';
 
@@ -17,13 +17,12 @@ type SortKey = 'score' | 'popular' | 'title' | 'author';
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('score');
-  const books = useAppSelector(selectBooks);
-  const authors = useAppSelector(selectAuthors);
+  const booksById = useAppSelector(selectBooksById);
+  const bookIds = useAppSelector(selectBookIds);
+  const authorsById = useAppSelector(selectAuthorsById);
   const {t} = useTranslation();
 
-  const favoriteBookIds = useAppSelector(
-    state => state.favorites.favoriteBookIds,
-  );
+  const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
 
   // Stop measuring navigation performance when HomeScreen mounts
   useEffect(() => {
@@ -40,21 +39,13 @@ export default function HomeScreen() {
     [t],
   );
 
-  const authorsById = useMemo(() => {
-    const map: Record<string, string> = {};
-    authors.forEach(author => {
-      map[author.id] = author.name;
-    });
-    return map;
-  }, [authors]);
-
   const favoritesProcessingData = useMemo(() => {
     const favoriteBooks = favoriteBookIds
-      .map(id => books.find(book => book.id === id))
+      .map(id => booksById[id])
       .filter(Boolean);
 
     const favoriteAuthors = favoriteBooks.map(book => {
-      const author = authors.find(a => a.id === book?.authorId);
+      const author = authorsById[book?.authorId];
       return author?.name
         .toLowerCase()
         .split('')
@@ -70,23 +61,27 @@ export default function HomeScreen() {
     };
 
     return {favoriteBooks, favoriteAuthors, favoriteStats};
-  }, [favoriteBookIds, books, authors]);
+  }, [favoriteBookIds, booksById, authorsById]);
 
   const filteredBookIds = useMemo(() => {
     performanceUtils.start('search-filter');
 
     const trimmedSearch = search.trim().toLowerCase();
-    const filteredBooks = trimmedSearch
-      ? books.filter(book => {
-          const authorName = authorsById[book.authorId] ?? '';
+    const filteredIds = trimmedSearch
+      ? bookIds.filter(id => {
+          const book = booksById[id];
+          const authorName = authorsById[book.authorId]?.name ?? '';
           return (
             book.title.toLowerCase().includes(trimmedSearch) ||
             authorName.toLowerCase().includes(trimmedSearch)
           );
         })
-      : books;
+      : bookIds;
 
-    const sortedBooks = [...filteredBooks].sort((a, b) => {
+    const sortedIds = [...filteredIds].sort((aId, bId) => {
+      const a = booksById[aId];
+      const b = booksById[bId];
+
       switch (sortBy) {
         case 'popular':
           if (b.votes !== a.votes) {
@@ -96,8 +91,8 @@ export default function HomeScreen() {
         case 'title':
           return a.title.localeCompare(b.title);
         case 'author':
-          return (authorsById[a.authorId] ?? '').localeCompare(
-            authorsById[b.authorId] ?? '',
+          return (authorsById[a.authorId]?.name ?? '').localeCompare(
+            authorsById[b.authorId]?.name ?? '',
           );
         case 'score':
         default:
@@ -109,18 +104,18 @@ export default function HomeScreen() {
     });
 
     performanceUtils.stop('search-filter');
-    return sortedBooks.map(book => book.id);
-  }, [search, books, authorsById, sortBy]);
+    return sortedIds;
+  }, [search, bookIds, booksById, authorsById, sortBy]);
 
   const bookStats = useMemo(() => {
     const stats = {
-      total: books.length,
+      total: bookIds.length,
       filtered: filteredBookIds.length,
       searchActive: !!search.trim(),
       favorites: favoritesProcessingData.favoriteStats.count,
     };
     return stats;
-  }, [books, filteredBookIds, search, favoritesProcessingData]);
+  }, [bookIds, filteredBookIds, search, favoritesProcessingData]);
 
   return (
     <View
