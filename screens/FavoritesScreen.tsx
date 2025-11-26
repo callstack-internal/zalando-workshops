@@ -2,13 +2,11 @@ import React, {useMemo, useState} from 'react';
 import {View, Text, FlatList, StyleSheet} from 'react-native';
 import TabView, {SceneMap} from 'react-native-bottom-tabs';
 import {useAppSelector, useTranslation} from '../hooks';
-import {selectBooks, selectAuthors} from '../store';
+import {selectBooks, selectAuthors, selectFavoriteBookIds} from '../store';
 import BookListItem from '../components/BookListItem';
 
 const BooksRoute = () => {
-  const favoriteBookIds = useAppSelector(
-    state => state.favorites.favoriteBookIds,
-  );
+  const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
   const {t} = useTranslation();
 
   if (favoriteBookIds.length === 0) {
@@ -34,9 +32,7 @@ const BooksRoute = () => {
 };
 
 const AuthorsRoute = () => {
-  const favoriteBookIds = useAppSelector(
-    state => state.favorites.favoriteBookIds,
-  );
+  const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
   const books = useAppSelector(selectBooks);
   const authors = useAppSelector(selectAuthors);
   const {t} = useTranslation();
@@ -332,9 +328,7 @@ const renderScene = SceneMap({
 });
 
 const FavoritesScreen = () => {
-  const favoriteBookIds = useAppSelector(
-    state => state.favorites.favoriteBookIds,
-  );
+  const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
   const {t} = useTranslation();
 
   const [index, setIndex] = useState(0);
