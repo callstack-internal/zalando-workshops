@@ -78,7 +78,10 @@ function AppContent() {
           <Stack.Screen
             name="Favorites"
             component={FavoritesScreen}
-            options={{title: t('favoriteBooksAndAuthors')}}
+            options={{
+              title: t('favoriteBooksAndAuthors'),
+              headerRight: () => <HeaderMenu />,
+            }}
           />
           <Stack.Screen
             name="Settings"
