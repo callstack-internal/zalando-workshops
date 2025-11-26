@@ -54,6 +54,29 @@ export const translations = {
     // Navigation headers
     booksHeader: 'Books',
     favoriteBooksAndAuthors: 'Favorite books and authors',
+
+    // BookDetailsScreen
+    bookDetails: 'Book Details',
+    basicInformation: 'Basic Information',
+    genre: 'Genre',
+    ratingsAndStatistics: 'Ratings & Statistics',
+    authorDetails: 'Author Details',
+    nationality: 'Nationality',
+    birthYear: 'Birth Year',
+    years: 'years',
+    primaryGenre: 'Primary Genre',
+    yearsActive: 'Years Active',
+    recentComments: 'Recent Comments',
+    noCommentsYet: 'No comments yet',
+    addComment: 'Add Comment',
+    yourName: 'Your name',
+    yourComment: 'Your comment',
+    submitComment: 'Submit Comment',
+    error: 'Error',
+    success: 'Success',
+    pleaseEnterBothAuthorAndComment: 'Please enter both your name and comment',
+    commentAdded: 'Comment added successfully',
+    bookNotFound: 'Book not found',
   },
   de: {
     // StartScreen
@@ -106,5 +129,28 @@ export const translations = {
     // Navigation headers
     booksHeader: 'Bücher',
     favoriteBooksAndAuthors: 'Lieblingsbücher und -autoren',
+
+    // BookDetailsScreen
+    bookDetails: 'Buchdetails',
+    basicInformation: 'Grundinformationen',
+    genre: 'Genre',
+    ratingsAndStatistics: 'Bewertungen & Statistiken',
+    authorDetails: 'Autorendetails',
+    nationality: 'Nationalität',
+    birthYear: 'Geburtsjahr',
+    years: 'Jahre',
+    primaryGenre: 'Hauptgenre',
+    yearsActive: 'Jahre aktiv',
+    recentComments: 'Neueste Kommentare',
+    noCommentsYet: 'Noch keine Kommentare',
+    addComment: 'Kommentar hinzufügen',
+    yourName: 'Ihr Name',
+    yourComment: 'Ihr Kommentar',
+    submitComment: 'Kommentar abschicken',
+    error: 'Fehler',
+    success: 'Erfolg',
+    pleaseEnterBothAuthorAndComment: 'Bitte geben Sie sowohl Ihren Namen als auch einen Kommentar ein',
+    commentAdded: 'Kommentar erfolgreich hinzugefügt',
+    bookNotFound: 'Buch nicht gefunden',
   },
 };

@@ -5,6 +5,7 @@ import StartScreen from './screens/StartScreen';
 import HomeScreen from './screens/HomeScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import BookDetailsScreen from './screens/BookDetailsScreen';
 import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
 import {Provider} from 'react-redux';
 import {useAppSelector, useAppDispatch, useTranslation} from './hooks';
@@ -83,6 +84,14 @@ function AppContent() {
             name="Settings"
             component={SettingsScreen}
             options={{title: t('settings')}}
+          />
+          <Stack.Screen
+            name="BookDetails"
+            component={BookDetailsScreen}
+            options={{
+              title: t('bookDetails'),
+              headerRight: () => <HeaderMenu />,
+            }}
           />
         </Stack.Navigator>
       </NavigationContainer>
