@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {View, Text, FlatList, StyleSheet} from 'react-native';
 import TabView, {SceneMap} from 'react-native-bottom-tabs';
-import {useAppSelector} from '../hooks';
+import {useAppSelector, useTranslation} from '../hooks';
 import {selectBooks, selectAuthors} from '../store';
 import BookListItem from '../components/BookListItem';
 
@@ -9,15 +9,14 @@ const BooksRoute = () => {
   const favoriteBookIds = useAppSelector(
     state => state.favorites.favoriteBookIds,
   );
+  const {t} = useTranslation();
 
   if (favoriteBookIds.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>📚</Text>
-        <Text style={styles.emptyTitle}>No favorite books yet</Text>
-        <Text style={styles.emptySubtitle}>
-          Tap the heart icon on any book to add it to your favorites
-        </Text>
+        <Text style={styles.emptyTitle}>{t('noFavoriteBooksYet')}</Text>
+        <Text style={styles.emptySubtitle}>{t('tapHeartToAdd')}</Text>
       </View>
     );
   }
@@ -40,6 +39,7 @@ const AuthorsRoute = () => {
   );
   const books = useAppSelector(selectBooks);
   const authors = useAppSelector(selectAuthors);
+  const {t} = useTranslation();
 
   const getCountryFlag = (country: string) => {
     const countryFlags: Record<string, string> = {
@@ -241,10 +241,8 @@ const AuthorsRoute = () => {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>👨‍💼</Text>
-        <Text style={styles.emptyTitle}>No authors found</Text>
-        <Text style={styles.emptySubtitle}>
-          Something went wrong loading the authors
-        </Text>
+        <Text style={styles.emptyTitle}>{t('noAuthorsFound')}</Text>
+        <Text style={styles.emptySubtitle}>{t('somethingWentWrong')}</Text>
       </View>
     );
   }
@@ -284,8 +282,8 @@ const AuthorsRoute = () => {
             </View>
           </View>
           <Text style={styles.authorStats}>
-            Age: {authorAge} | Awards: {totalAwards} | Genre matches:{' '}
-            {genreMatch}
+            {t('age')}: {authorAge} | {t('awards')}: {totalAwards} |{' '}
+            {t('genreMatches')}: {genreMatch}
           </Text>
           {hasInternationalName && (
             <Text style={styles.nationality}>
@@ -294,8 +292,9 @@ const AuthorsRoute = () => {
           )}
           {newestBook && (
             <Text style={styles.bookRange}>
-              Newest: {new Date(newestBook.publishedDate).getFullYear()} -
-              Oldest: {new Date(oldestBook.publishedDate).getFullYear()}
+              {t('newest')}: {new Date(newestBook.publishedDate).getFullYear()}{' '}
+              - {t('oldest')}:{' '}
+              {new Date(oldestBook.publishedDate).getFullYear()}
             </Text>
           )}
         </View>
@@ -336,6 +335,7 @@ const FavoritesScreen = () => {
   const favoriteBookIds = useAppSelector(
     state => state.favorites.favoriteBookIds,
   );
+  const {t} = useTranslation();
 
   const [index, setIndex] = useState(0);
 
@@ -344,21 +344,21 @@ const FavoritesScreen = () => {
     () => [
       {
         key: 'books',
-        title: `Books (${favoriteBookIds.length})`,
+        title: `${t('booksTab')} (${favoriteBookIds.length})`,
       },
       {
         key: 'authors',
-        title: 'Authors',
+        title: t('authorsTab'),
         testID: 'authors-tab',
       },
     ],
-    [favoriteBookIds.length],
+    [favoriteBookIds.length, t],
   );
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>
-        Your Favorites ({favoriteBookIds.length})
+        {t('yourFavorites')} ({favoriteBookIds.length})
       </Text>
 
       <TabView

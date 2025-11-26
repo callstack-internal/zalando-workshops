@@ -1,6 +1,9 @@
 import React, {useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {useAppSelector, useAppDispatch} from '../hooks';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../screens/types';
+import {useAppSelector, useAppDispatch, useTranslation} from '../hooks';
 import {
   selectBookById,
   selectAuthorById,
@@ -11,12 +14,16 @@ import {
 import {formatDate} from '../utils';
 import performanceUtils from '../performance-utils';
 
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
 interface BookListItemProps {
   id: string;
 }
 
 const BookListItem = ({id}: BookListItemProps) => {
   const dispatch = useAppDispatch();
+  const navigation = useNavigation<NavigationProp>();
+  const {t} = useTranslation();
   const book = useAppSelector(state => selectBookById(state, id));
   const authorName = useAppSelector(
     state => selectAuthorById(state, book?.authorId ?? '')?.name,
@@ -38,36 +45,43 @@ const BookListItem = ({id}: BookListItemProps) => {
   };
 
   return (
-    <View style={styles.card}>
-      <View style={styles.info}>
-        <Text style={styles.title}>{book?.title}</Text>
-        <Text style={styles.author}>{authorName}</Text>
-        <Text style={styles.date}>
-          Published:{' '}
-          {book?.publishedDate ? formatDate(book.publishedDate) : 'Unknown'}
-        </Text>
-        <Text style={styles.lastRead}>
-          Last read: {book?.lastRead ? formatDate(book.lastRead) : 'Never'}
-        </Text>
-        <Text style={styles.rating}>
-          {book
-            ? book.votes > 0
-              ? `Rating: ${book.rating.toFixed(2)} (${book.votes.toLocaleString()} votes)`
-              : 'Not rated yet'
-            : 'Loading...'}
-        </Text>
-        <Text style={styles.comment}>
-          {lastComment?.author}: {lastComment?.content?.slice(0, 30)}
-          {lastComment?.content?.length > 30 ? '…' : ''}
-        </Text>
-      </View>
+    <TouchableOpacity
+      onPress={() => {
+        performanceUtils.start('book-details-render');
+        navigation.navigate('BookDetails', {bookId: id});
+      }}
+      activeOpacity={0.7}>
+      <View style={styles.card}>
+        <View style={styles.info}>
+          <Text style={styles.title}>{book?.title}</Text>
+          <Text style={styles.author}>{authorName}</Text>
+          <Text style={styles.date}>
+            {t('published')}:{' '}
+            {book?.publishedDate ? formatDate(book.publishedDate) : t('unknown')}
+          </Text>
+          <Text style={styles.lastRead}>
+            {t('lastRead')}: {book?.lastRead ? formatDate(book.lastRead) : t('never')}
+          </Text>
+          <Text style={styles.rating}>
+            {book
+              ? book.votes > 0
+                ? `${t('rating')}: ${book.rating.toFixed(2)} (${book.votes.toLocaleString()} ${t('votes')})`
+                : t('notRatedYet')
+              : t('loading')}
+          </Text>
+          <Text style={styles.comment}>
+            {lastComment?.author}: {lastComment?.content?.slice(0, 30)}
+            {lastComment?.content?.length > 30 ? '…' : ''}
+          </Text>
+        </View>
 
-      <TouchableOpacity
-        style={styles.favoriteButton}
-        onPress={handleToggleFavorite}>
-        <Text style={styles.favoriteIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={handleToggleFavorite}>
+          <Text style={styles.favoriteIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 };
 

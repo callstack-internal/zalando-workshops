@@ -7,25 +7,19 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import {useAppSelector} from '../hooks';
+import {useAppSelector, useTranslation} from '../hooks';
 import {selectBooks, selectAuthors} from '../store';
 import BookListItem from '../components/BookListItem';
 import performanceUtils from '../performance-utils';
 
-const sortOptions = [
-  {key: 'score', label: 'Score'},
-  {key: 'popular', label: 'Most popular'},
-  {key: 'title', label: 'Title'},
-  {key: 'author', label: 'Author'},
-] as const;
-
-type SortKey = (typeof sortOptions)[number]['key'];
+type SortKey = 'score' | 'popular' | 'title' | 'author';
 
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('score');
   const books = useAppSelector(selectBooks);
   const authors = useAppSelector(selectAuthors);
+  const {t} = useTranslation();
 
   const favoriteBookIds = useAppSelector(
     state => state.favorites.favoriteBookIds,
@@ -35,6 +29,16 @@ export default function HomeScreen() {
   useEffect(() => {
     performanceUtils.stop('app-login');
   }, []);
+
+  const sortOptions = useMemo(
+    () => [
+      {key: 'score' as const, label: t('sortScore')},
+      {key: 'popular' as const, label: t('sortPopular')},
+      {key: 'title' as const, label: t('sortTitle')},
+      {key: 'author' as const, label: t('sortAuthor')},
+    ],
+    [t],
+  );
 
   const authorsById = useMemo(() => {
     const map: Record<string, string> = {};
@@ -129,16 +133,16 @@ export default function HomeScreen() {
         onChangeText={text => {
           setSearch(text);
         }}
-        placeholder="Search by book or author"
+        placeholder={t('searchPlaceholder')}
         style={styles.input}
         testID="search-input"
       />
       <Text style={styles.centered}>
-        Showing {bookStats.filtered} of {bookStats.total} books | ❤️{' '}
-        {bookStats.favorites} favorites
+        {t('showing')} {bookStats.filtered} {t('of')} {bookStats.total}{' '}
+        {t('books')} | ❤️ {bookStats.favorites} {t('favorites')}
       </Text>
       <View style={styles.sortContainer}>
-        <Text style={styles.sortLabel}>Sort by:</Text>
+        <Text style={styles.sortLabel}>{t('sortBy')}</Text>
         <View style={styles.sortOptions}>
           {sortOptions.map(option => {
             const isActive = option.key === sortBy;

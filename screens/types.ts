@@ -3,4 +3,5 @@ export type RootStackParamList = {
   Home: undefined;
   Favorites: undefined;
   Settings: undefined;
+  BookDetails: {bookId: string};
 };

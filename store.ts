@@ -3,8 +3,9 @@ const books: Book[] = require('./mocks/books.json');
 const authors: Author[] = require('./mocks/authors.json');
 const comments: Comment[] = require('./mocks/comments.json');
 
-import {configureStore, createSlice, createSelector} from '@reduxjs/toolkit';
+import {configureStore, createSlice, createSelector, PayloadAction} from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Language} from './translations';
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
@@ -24,7 +25,11 @@ const authorsSlice = createSlice({
 const commentsSlice = createSlice({
   name: 'comments',
   initialState: comments,
-  reducers: {},
+  reducers: {
+    addComment: (state, action: PayloadAction<Comment>) => {
+      state.push(action.payload);
+    },
+  },
 });
 
 const settingsSlice = createSlice({
@@ -32,6 +37,7 @@ const settingsSlice = createSlice({
   initialState: {
     devPanelEnabled: false,
     fabEnabled: false,
+    language: 'en' as Language,
   },
   reducers: {
     toggleDevPanel: state => {
@@ -43,6 +49,10 @@ const settingsSlice = createSlice({
     },
     setFabEnabled: (state, action) => {
       state.fabEnabled = action.payload;
+    },
+    setLanguage: (state, action) => {
+      state.language = action.payload;
+      AsyncStorage.setItem('language', action.payload);
     },
   },
 });
@@ -75,8 +85,9 @@ const favoritesSlice = createSlice({
   },
 });
 
-export const {toggleDevPanel, toggleFab, setFabEnabled} = settingsSlice.actions;
+export const {toggleDevPanel, toggleFab, setFabEnabled, setLanguage} = settingsSlice.actions;
 export const {toggleFavorite, setFavoriteBookIds} = favoritesSlice.actions;
+export const {addComment} = commentsSlice.actions;
 
 export const store = configureStore({
   reducer: {
@@ -109,6 +120,15 @@ export const selectCommentsByBookId = createSelector(
   (allComments, bookId) =>
     Object.values(allComments).filter(comment => comment.bookId === bookId),
 );
+export const selectLast10CommentsByBookId = createSelector(
+  [selectComments, (state, bookId) => bookId],
+  (allComments, bookId) => {
+    const bookComments = Object.values(allComments).filter(
+      comment => comment.bookId === bookId,
+    );
+    return bookComments.slice(-10);
+  },
+);
 
 /** Settings selectors */
 export const selectDevPanelEnabled = (state: RootState): boolean =>
@@ -117,8 +137,13 @@ export const selectDevPanelEnabled = (state: RootState): boolean =>
 export const selectFabEnabled = (state: RootState): boolean =>
   state.settings.fabEnabled;
 
+export const selectLanguage = (state: RootState): Language =>
+  state.settings.language;
+
 /** Favorites selectors */
 export const selectIsBookFavorite = (
   state: RootState,
   bookId: string,
 ): boolean => state.favorites.favoriteBookIds.includes(bookId);
+export const selectFavoriteBookIds = (state: RootState): string[] =>
+  state.favorites.favoriteBookIds;
