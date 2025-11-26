@@ -50,7 +50,10 @@ const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('BookDetails', {bookId: id})}
+      onPress={() => {
+        performanceUtils.start('book-details-render');
+        navigation.navigate('BookDetails', {bookId: id});
+      }}
       activeOpacity={0.7}>
       <View style={styles.card}>
         <View style={styles.info}>

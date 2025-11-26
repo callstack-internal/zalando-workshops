@@ -45,12 +45,8 @@ export default function BookDetailsScreen({route}: Props) {
   const [newCommentAuthor, setNewCommentAuthor] = useState('');
   const [newCommentContent, setNewCommentContent] = useState('');
 
-  // Performance tracking
   useEffect(() => {
-    performanceUtils.start('book-details-render');
-    return () => {
-      performanceUtils.stop('book-details-render');
-    };
+    performanceUtils.stop('book-details-render');
   }, []);
 
   // Handle favorite toggle

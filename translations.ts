@@ -19,6 +19,7 @@ export const translations = {
     sortPopular: 'Most popular',
     sortTitle: 'Title',
     sortAuthor: 'Author',
+    author: 'Author',
 
     // BookListItem
     published: 'Published',
@@ -94,6 +95,7 @@ export const translations = {
     sortPopular: 'Am beliebtesten',
     sortTitle: 'Titel',
     sortAuthor: 'Autor',
+    author: 'Author',
 
     // BookListItem
     published: 'Veröffentlicht',
