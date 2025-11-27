@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useMemo, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {selectBooksById, selectBookIds, selectAuthorsById, selectFavoriteBookIds
 import BookListItem from '../components/BookListItem';
 import performanceUtils from '../performance-utils';
 import {localeCompare} from '../stringUtils';
-import { LegendList } from '@legendapp/list';
+import { LegendList, LegendListRef } from '@legendapp/list';
 
 type SortKey = 'score' | 'popular' | 'title' | 'author';
 
@@ -22,6 +22,7 @@ export default function HomeScreen() {
   const bookIds = useAppSelector(selectBookIds);
   const authorsById = useAppSelector(selectAuthorsById);
   const {t} = useTranslation();
+  const listRef = useRef<LegendListRef>(null);
 
   const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
 
@@ -29,6 +30,10 @@ export default function HomeScreen() {
   useEffect(() => {
     performanceUtils.stop('app-login');
   }, []);
+
+  useEffect(() => {
+    listRef.current?.scrollToIndex({index: 0, animated: false});
+  }, [sortBy]);
 
   const sortOptions = useMemo(
     () => [
@@ -164,11 +169,12 @@ export default function HomeScreen() {
         </View>
       </View>
       <LegendList
+        ref={listRef}
         data={filteredBookIds}
         renderItem={({item}) => (
           <BookListItem id={item}/>
         )}
-        keyExtractor={item => item}
+        keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingVertical: 8}}
         recycleItems
       />
