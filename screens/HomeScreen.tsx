@@ -2,7 +2,6 @@ import React, {useState, useMemo, useEffect} from 'react';
 import {
   View,
   Text,
-  FlatList,
   TextInput,
   StyleSheet,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import {selectBooksById, selectBookIds, selectAuthorsById, selectFavoriteBookIds
 import BookListItem from '../components/BookListItem';
 import performanceUtils from '../performance-utils';
 import {localeCompare} from '../stringUtils';
+import { LegendList } from '@legendapp/list';
 
 type SortKey = 'score' | 'popular' | 'title' | 'author';
 
@@ -163,14 +163,14 @@ export default function HomeScreen() {
           })}
         </View>
       </View>
-      <FlatList
+      <LegendList
         data={filteredBookIds}
         renderItem={({item}) => (
           <BookListItem id={item}/>
         )}
         keyExtractor={item => item}
         contentContainerStyle={{paddingVertical: 8}}
-        initialNumToRender={500}
+        recycleItems
       />
     </View>
   );
