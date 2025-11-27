@@ -86,6 +86,7 @@ export default function HomeScreen() {
         })
       : books;
 
+    performanceUtils.start(`sort-${sortBy}`);
     const sortedBooks = [...filteredBooks].sort((a, b) => {
       switch (sortBy) {
         case 'popular':
@@ -107,6 +108,7 @@ export default function HomeScreen() {
           return b.votes - a.votes;
       }
     });
+    performanceUtils.stop(`sort-${sortBy}`);
 
     performanceUtils.stop('search-filter');
     return sortedBooks.map(book => book.id);
