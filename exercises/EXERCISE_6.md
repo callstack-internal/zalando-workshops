@@ -159,10 +159,59 @@ Migrate from Flatlist to LegendList
 2.  Replace `FlatList` in `HomeScreen` with `LegendList`:
 
 ```
-import { LegendList } from "@legendapp/list";
+-import React, {useState, useMemo, useEffect} from 'react';
++import React, {useState, useMemo, useEffect, useRef} from 'react';
+ import {
+   View,
+   Text,
+-  FlatList,
+   TextInput,
+   StyleSheet,
+   TouchableOpacity,
+@@ -11,6 +10,8 @@ import {useAppSelector, useTranslation} from '../hooks';
+ import {selectBooksById, selectBookIds, selectAuthorsById, selectFavoriteBookIds} from '../store';
+ import BookListItem from '../components/BookListItem';
+ import performanceUtils from '../performance-utils';
++import { LegendList, LegendListRef } from '@legendapp/list';
+ 
+ type SortKey = 'score' | 'popular' | 'title' | 'author';
+ 
+@@ -21,6 +22,7 @@ export default function HomeScreen() {
+   const bookIds = useAppSelector(selectBookIds);
+   const authorsById = useAppSelector(selectAuthorsById);
+   const {t} = useTranslation();
++  const listRef = useRef<LegendListRef>(null);
+ 
+   const favoriteBookIds = useAppSelector(selectFavoriteBookIds);
+ 
+@@ -29,6 +31,10 @@ export default function HomeScreen() {
+     performanceUtils.stop('app-login');
+   }, []);
+ 
++  useEffect(() => {
++    listRef.current?.scrollToIndex({index: 0, animated: false});
++  }, [sortBy]);
++
 
-<LegendList
-...
+@@ -161,14 +168,15 @@ export default function HomeScreen() {
+           })}
+         </View>
+       </View>
+-      <FlatList
++      <LegendList
++        ref={listRef}
+         data={filteredBookIds}
+         renderItem={({item}) => (
+           <BookListItem id={item}/>
+         )}
+-        keyExtractor={item => item}
++        keyExtractor={(item, index) => index.toString()}
+         contentContainerStyle={{paddingVertical: 8}}
+-        initialNumToRender={500}
++        recycleItems
+       />
+     </View>
+   );
 ```
 3. Remove the unsupported props
 4. Add `recycleItems` prop
