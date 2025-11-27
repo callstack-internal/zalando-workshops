@@ -5,8 +5,10 @@
 - Tools required: JavaScript profiler, Flashlight
 
 ## Learning objectives
-- 
-- 
+- Identify Hermes-specific manipulation bottlenecks
+- Learn to optimize string sorting
+- Optimize large list rendering
+- Distinguish between JS and UI thread bottlenecks: Use profiling tools to differentiate between slow JavaScript logic (sorting algorithms) and slow UI rendering (list virtualization).
 
 ## Prerequisites
 
@@ -18,8 +20,8 @@ Monitoring tool indicates that `sort-title` and `sort-author` metrics are way sl
 
 ## Objective
 
-1. Optimize the sorting mechanism so all the sorts are similarly efficient.
-2. Make the switch between sorts smooth
+1. Make the switch between sorts smooth
+2. Optimize the sorting mechanism so all the sorts are similarly efficient.
 
 ## Reproduction steps
 
