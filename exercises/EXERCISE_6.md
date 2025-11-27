@@ -26,12 +26,8 @@ Monitoring tool indicates that `sort-title` and `sort-author` metrics are way sl
 1. Open the app
 2. Login into the app
 3. Press "Most Popular"
-4. Start profiling
-5. Press "Title"
-6. Stop profiling once the list loaded
-7. Download the profile
-
-Analyze the profile in https://speedscope.app
+4. Press "Title"
+5. Verify the list loaded
 
 ## Baseline
 
@@ -69,82 +65,7 @@ Analyze the profile in https://speedscope.app
 ```shell
 flashlight test --bundleId com.performanceworkshops --testCommand "maestro test flows/<flow-name>.yml" --resultsFilePath baseline.json --iterationCount 3
 ```
-
-
-## The fix - Part 1
-1. Create custom function that uses a single instance of Intl.Collator
-
-<details>
-  <summary>Solution</summary>
-  
-  Create a single Intl.Collator instance
-  ```diff
-  diff --git a/screens/HomeScreen.tsx b/screens/HomeScreen.tsx
-index d7040ee..07a1577 100644
---- a/screens/HomeScreen.tsx
-+++ b/screens/HomeScreen.tsx
-@@ -11,6 +11,7 @@ import {useAppSelector, useTranslation} from '../hooks';
- import {selectBooksById, selectBookIds, selectAuthorsById, selectFavoriteBookIds} from '../store';
- import BookListItem from '../components/BookListItem';
- import performanceUtils from '../performance-utils';
-+import {localeCompare} from '../stringUtils';
- 
- type SortKey = 'score' | 'popular' | 'title' | 'author';
- 
-@@ -89,9 +90,10 @@ export default function HomeScreen() {
-           }
-           return b.rating - a.rating;
-         case 'title':
--          return a.title.localeCompare(b.title);
-+          return localeCompare(a.title, b.title);
-         case 'author':
--          return (authorsById[a.authorId]?.name ?? '').localeCompare(
-+          return localeCompare(
-+            authorsById[a.authorId]?.name ?? '',
-             authorsById[b.authorId]?.name ?? '',
-           );
-         case 'score':
-diff --git a/stringUtils.ts b/stringUtils.ts
-new file mode 100644
-index 0000000..eceb7f6
---- /dev/null
-+++ b/stringUtils.ts
-@@ -0,0 +1,10 @@
-+// Create a single Intl.Collator instance for efficient string comparisons
-+const collator = new Intl.Collator('en', {usage: 'sort'});
-+
-+/**
-+ * Optimized string comparison using a shared Intl.Collator instance.
-+ * More performant than String.prototype.localeCompare() when called repeatedly.
-+ */
-+export const localeCompare = (a: string, b: string): number => {
-+  return collator.compare(a, b);
-+};
-
-
-  ```
-</details>
-
-
-## Verification - Metrics
-
-1. Open React Devtools -> Console
-2. Login into the app
-3. Press "Most Popular"
-4. **Compare**: `sort-popular` metric (ms, % improvement)
-5. Press "Title"
-6. **Compare**: `sort-title` metric (ms, % improvement)
-7. Press "Author"
-8. **Compare**: `sort-author` metric (ms, % improvement)
-
-## Verification - Flashlight
-1. Build the app in release mode
-2. Run the automated flashlight measurements and save the results to another file:
-```shell
-flashlight test --bundleId com.performanceworkshops --testCommand "maestro test flows/<flow-name>.yml" --resultsFilePath results-1.json --iterationCount 3
-```
-
-## The Fix - Part 2
+## The Fix - Part 1
 
 Migrate from Flatlist to LegendList
 
@@ -217,8 +138,93 @@ Migrate from Flatlist to LegendList
 4. Add `recycleItems` prop
 </details>
 
+## Validation - Metrics
+1. Open React Devtools -> Performance
+2. Login into the app
+3. Press "Most Popular"
+4. **Compare**: `sort-popular` metric (ms, % improvement)
+6. Start profiling
+7. Press "Title"
+8. Stop profiling once the list reloaded
+9. Download the recorded profile
+10. **Compare**: `sort-title` metric (ms, % improvement)
+11. Press "Author"
+12. **Compare**: `sort-author` metric (ms, % improvement)
+
 ## Validation - Flashlight
 1. Build the app in the release mode
+2. Run the automated flashlight measurements and save the results to another file:
+```shell
+flashlight test --bundleId com.performanceworkshops --testCommand "maestro test flows/<flow-name>.yml" --resultsFilePath results-1.json --iterationCount 3
+```
+
+## The fix - Part 2
+1. Create custom function that uses a single instance of Intl.Collator
+
+<details>
+  <summary>Solution</summary>
+  
+  Create a single Intl.Collator instance
+  ```diff
+  diff --git a/screens/HomeScreen.tsx b/screens/HomeScreen.tsx
+index d7040ee..07a1577 100644
+--- a/screens/HomeScreen.tsx
++++ b/screens/HomeScreen.tsx
+@@ -11,6 +11,7 @@ import {useAppSelector, useTranslation} from '../hooks';
+ import {selectBooksById, selectBookIds, selectAuthorsById, selectFavoriteBookIds} from '../store';
+ import BookListItem from '../components/BookListItem';
+ import performanceUtils from '../performance-utils';
++import {localeCompare} from '../stringUtils';
+ 
+ type SortKey = 'score' | 'popular' | 'title' | 'author';
+ 
+@@ -89,9 +90,10 @@ export default function HomeScreen() {
+           }
+           return b.rating - a.rating;
+         case 'title':
+-          return a.title.localeCompare(b.title);
++          return localeCompare(a.title, b.title);
+         case 'author':
+-          return (authorsById[a.authorId]?.name ?? '').localeCompare(
++          return localeCompare(
++            authorsById[a.authorId]?.name ?? '',
+             authorsById[b.authorId]?.name ?? '',
+           );
+         case 'score':
+diff --git a/stringUtils.ts b/stringUtils.ts
+new file mode 100644
+index 0000000..eceb7f6
+--- /dev/null
++++ b/stringUtils.ts
+@@ -0,0 +1,10 @@
++// Create a single Intl.Collator instance for efficient string comparisons
++const collator = new Intl.Collator('en', {usage: 'sort'});
++
++/**
++ * Optimized string comparison using a shared Intl.Collator instance.
++ * More performant than String.prototype.localeCompare() when called repeatedly.
++ */
++export const localeCompare = (a: string, b: string): number => {
++  return collator.compare(a, b);
++};
+
+  ```
+</details>
+
+
+## Validation - Metrics
+
+1. Open React Devtools -> Console
+2. Login into the app
+3. Press "Most Popular"
+4. **Compare**: `sort-popular` metric (ms, % improvement)
+5. Press "Title"
+6. **Compare**: `sort-title` metric (ms, % improvement)
+7. Press "Author"
+8. **Compare**: `sort-author` metric (ms, % improvement)
+
+## Validation - Flashlight
+1. Build the app in release mode
 2. Run the automated flashlight measurements and save the results to another file:
 ```shell
 flashlight test --bundleId com.performanceworkshops --testCommand "maestro test flows/<flow-name>.yml" --resultsFilePath results-2.json --iterationCount 3
