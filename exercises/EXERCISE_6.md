@@ -15,8 +15,9 @@
 - Android app running
 
 ## Background
+We've got a request to replace FlatList with LegendList. This should noticeably speed up login and switching between sort modes, since we’d stop rendering ~500 items up front.
 
-Monitoring tool indicates that `sort-title` and `sort-author` metrics are way slower than `sort-popular` and `sort-score`. The result of sorting for those functions seems to be even 100 times slower during the single session.
+Right now the monitoring shows that sort-title and sort-author are dramatically slower than sort-popular and sort-score - in some cases up to 100× slower within a single session.
 
 ## Objective
 
