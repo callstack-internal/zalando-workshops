@@ -9,19 +9,21 @@ This workshop teaches React Native performance optimization through hands-on exe
 ## 🚀 Quick Start
 
 ### Prerequisites
-1. Installed Xcode and Android Studio
-2. Installed Node.js
-3. Cloned repository
-Please install dependencies, use npm run android and npm run ios and make sure the app opens properly on both platforms
+1. React Native environment set up - please follow the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide from the official docs
+2. Cloned repository
+- Please install dependencies the dependencies: `npm install`
+- use `npm run start`
+- use `npm run android`
+- use `npm run ios`
+- verify the app opens properly on both platforms
 4. Flashlight installed: https://docs.flashlight.dev/#installation
 5. Maestro installed: https://github.com/mobile-dev-inc/maestro-docs/blob/main/getting-started/installing-maestro/README.md
-6. Copy this file to your Google Drive: https://docs.google.com/spreadsheets/d/1hYPo508nh1dfvOh0TX2EJP_WzJ53DEwIuj7Qo_iS9Co/edit?gid=0#gid=0
 
 ### Installation
 ```bash
 # Clone the repository
 git clone [repository-url]
-cd performance-workshops
+cd zalando-workshops
 
 # Install dependencies
 npm install
@@ -69,6 +71,7 @@ npm start                    # Start Metro bundler
 npm run ios                  # Run on iOS simulator
 npm run android              # Run on Android emulator/device
 npm run lint                 # ESLint code checking
+npm run lint:timing          # ESLint code checking with timing
 npm test                     # Run Jest tests
 ```
 
@@ -82,14 +85,16 @@ npm run test:perf:check-stability # Verify test stability
 ### Build & Profiling
 ```bash
 npm run bundle:android       # Create production Android bundle
+npm run bundle:ios          # Create production iOS bundle
+npm run bundle:discover     # Run bundle analyzer
 npm run downloadtrace:android # Download Android performance traces
 ```
 
 ## 🛠️ Tools & Technologies
 
 ### Core Stack
-- **React Native 0.79.1**: Latest React Native with performance improvements
-- **React 19.0.0**: Latest React with concurrent features
+- **React Native 0.82.1**: Latest React Native with performance improvements
+- **React 19.1.1**: Latest React with concurrent features
 - **TypeScript**: Type safety and developer experience
 - **Redux Toolkit**: State management with performance optimizations
 
@@ -100,6 +105,8 @@ npm run downloadtrace:android # Download Android performance traces
 - **Search & Filter**: Real-time search across books and authors
 - **Favorites System**: Add/remove favorites with state management
 - **Author Information**: Linked author data with relationship queries
+- **Book details**: View the details of the book
+- **Sort books**: Sort books by different fields
 
 ## 🔍 Troubleshooting
 
@@ -110,15 +117,12 @@ npm run downloadtrace:android # Download Android performance traces
 npm run start --reset-cache
 ```
 
-**Chrome DevTools not connecting:**
-1. Check `chrome://inspect` port forwarding
-2. Verify Metro is running on port 8081
-3. Restart app and DevTools connection
-
 ## 📚 Additional Resources
 
+- [SpeedScope](https://www.speedscope.app/)
+- [Perflink](https://perf.link/)
 - [React Native Performance Guide](https://reactnative.dev/docs/performance)
 - [React DevTools Profiler](https://react.dev/learn/react-developer-tools#profiler)
 - [Reassure Documentation](https://callstack.github.io/reassure/)
 - [Redux Performance Patterns](https://redux.js.org/tutorials/fundamentals/part-6-async-logic#performance-and-normalizing-data)
-
+- [Redux createEntityAdapter](https://redux.js.org/tutorials/essentials/part-6-performance-normalization#managing-normalized-state-with-createentityadapter)

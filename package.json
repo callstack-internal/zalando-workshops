@@ -5,6 +5,7 @@
   "scripts": {
     "start": "rock start",
     "lint": "eslint .",
+    "lint:timing": "TIMING=all eslint .",
     "test": "jest",
     "ios": "rock run:ios",
     "android": "rock run:android",
