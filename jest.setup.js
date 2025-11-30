@@ -13,6 +13,21 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
+// Mock react-navigation
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+  }),
+  useRoute: () => ({
+    key: 'test-route-key',
+    name: 'TestRoute',
+  }),
+  NavigationContainer: ({ children }) => children,
+}));
+
 // Mock some modules that might cause issues
 jest.mock('react-native-gesture-handler', () => ({}));
 
