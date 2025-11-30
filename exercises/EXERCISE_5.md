@@ -20,7 +20,7 @@ Crucially, this issue is not reproducible immediately after launching the app (e
 
 ## Objective
 
-Prepare a strategy how to approach the problem.
+Identify why there is a visible lag when switching between languages and eliminate it.
 
 ## Reproduction steps
 
@@ -57,60 +57,18 @@ flashlight measure
 7. **Do not stop the server or close Flashlight**
 
 ## The fix
-Reset the navigation state on language change so the screens in the stack are killed.
+Freeze the screen that you identified as a root cause of the lag.
 
 <details>
   <summary>Solution</summary>
-  
-  Reset the navigation using a method from `react-navigation`:
-  ```diff
-  diff --git a/screens/SettingsScreen.tsx b/screens/SettingsScreen.tsx
-  index 5814266..fbb2316 100644
-  --- a/screens/SettingsScreen.tsx
-  +++ b/screens/SettingsScreen.tsx
-  @@ -3,14 +3,27 @@ import {View, Text, Switch, StyleSheet, TouchableOpacity} from 'react-native';
-  import {useAppSelector, useAppDispatch, useTranslation} from '../hooks';
-  import {selectFabEnabled, toggleFab, setLanguage} from '../store';
-  import {Language} from '../translations';
-  +import {NativeStackScreenProps} from '@react-navigation/native-stack';
-  +import {RootStackParamList} from './types';
-  +import {CommonActions} from '@react-navigation/native';
-  
-  -const SettingsScreen = () => {
-  +type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
-  +
-  +const SettingsScreen = ({navigation}: Props) => {
-    const dispatch = useAppDispatch();
-    const fabEnabled = useAppSelector(selectFabEnabled);
-    const {t, language} = useTranslation();
-  
-    const handleLanguageChange = (newLanguage: Language) => {
-      dispatch(setLanguage(newLanguage));
-  +
-  +    // Reset navigation stack to Home screen
-  +    navigation.dispatch(
-  +      CommonActions.reset({
-  +        index: 0,
-  +        routes: [{name: 'Home'}],
-  +      }),
-  +    );
-    };
-  
-    return (
-  ```
-  Into path import:
-  ```
-    import {differenceInDays} from 'date-fns/differenceInDays';
-    import {format} from 'date-fns/format';
-    import {parseISO} from 'date-fns/parseISO';
-  ```
+  In `App.tsx`, pass `freezeOnBlur: true` to `HomeScreen`
 </details>
 
 
 ## Verification
 1. Repeat the **Part 1** from the Baseline
 2. Verify if highlighting is still heavily visible
-3. Go to `android` folder and run `./gradlew assembleRelease`
-4. Drag & Drop new artifact
-5. Repeat the **Part 2** from the Baseline, starting from point 4
-6. Compare the Flashlight results. What are your conclusions? 
+3. Go to `android` folder and run `./gradlew assembleRelease` or use the `exercise-5.apk` file from `/artifacts`
+4. Drag & Drop the new artifact
+5. Repeat the **Part 2** from the Baseline, starting from point 4. Do not open flashlight from scratch - our goal is to compare the results
+6. Compare the Flashlight results 
