@@ -5,13 +5,14 @@
   "scripts": {
     "start": "rock start",
     "lint": "eslint .",
+    "lint:timing": "TIMING=all eslint .",
     "test": "jest",
     "ios": "rock run:ios",
     "android": "rock run:android",
     "bundle:android": "rock bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --sourcemap-output android/app/src/main/assets/index.android.bundle.map",
     "bundle:ios": "rock bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --sourcemap-output ios/main.jsbundle.map",
     "bundle:discover": "npx react-native-bundle-discovery server metro-stats.json",
-    "downloadtrace:android": "npx react-native-release-profiler --fromDownload --app-id com.performanceworkshops --sourcemap-path android/app/src/main/assets/index.android.bundle.map",
+    "downloadtrace:android": "npx react-native-release-profiler --fromDownload --appId com.performanceworkshops --sourcemap-path android/app/src/main/assets/index.android.bundle.map",
     "test:perf": "reassure",
     "test:perf:baseline": "reassure --baseline",
     "test:perf:check-stability": "reassure check-stability"
@@ -25,6 +26,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "date-fns": "^4.1.0",
     "react": "19.1.1",
+    "react-freeze": "^1.0.4",
     "react-native": "0.82.1",
     "react-native-bottom-tabs": "^0.9.2",
     "react-native-gesture-handler": "^2.29.1",

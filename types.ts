@@ -24,4 +24,5 @@ export interface Comment {
   bookId: string;
   author: string;
   content: string;
+  createdAt?: string;
 }

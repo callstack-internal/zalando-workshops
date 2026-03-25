@@ -1,148 +1,74 @@
-# Exercise 5: Performance Regression Testing with Reassure
+# Exercise 5: Over-subscribing
 
-## Overview
-In this exercise, you'll use **Reassure** to measure React Native component performance and detect regressions. You'll establish baseline measurements, test performance improvements, and analyze statistical results to understand the impact of code changes.
+## Exercise overview
+- Estimated time: 30mins
+- Tools required: React DevTools, Flashlight
 
-## Why Use Reassure?
-- **Automated regression detection**: Catch performance issues before code review
-- **Statistical analysis**: Get confidence intervals and significance testing
-- **Real data testing**: Test with your actual app data (5000 books, 3000 authors)
-- **Component-focused**: Measure React component render performance specifically
+## Learning objectives
+- Learn how screens stacks work
+- Learn how to identify when background screens are responding to global state changes
 
 ## Prerequisites
-- Reassure already set up and configured
-- Performance tests already written in `__perf__/` directory
-- Large mock datasets available in `/mocks` folder
 
-## Part 1: Baseline Measurements
+- Android app running
 
-### Step 1: Run Baseline Performance Tests
-```bash
-npm run test:perf:baseline
+## Background
+
+QA reported that when attempting to switch the language in the app on a low-end Android device, they experience a significant app freeze (UI blocking) for a moment where the app becomes unresponsive.
+
+Crucially, this issue is not reproducible immediately after launching the app (e.g., on the Login screen). It only manifests after the user has been using the app for some time
+
+## Objective
+
+Identify why there is a visible lag when switching between languages and eliminate it.
+
+## Reproduction steps
+
+1. Open the app
+2. Login into the app
+3. Add a book to favorites
+4. Go to Favorites
+5. Switch the tab to "Authors"
+6. Press on one of the books in the screen to navigate to details
+7. Once in the details, open Settings
+8. Switch the language
+
+## Baseline
+
+### Part 1
+1. Open React Devtools -> Profiler
+2. Open settings and check "Highlight updates when components render"
+3. Start profiling
+4. Switch the language
+5. Verify what is highlighted in the app after switching the language
+6. Stop profiling
+7. Analyze the profiler output - what do you see?
+
+### Part 2
+1. Disable "Highlight updates when components render"
+2. Run command
+```shell
+flashlight measure
 ```
+3. Once website is open, press "Auto-detect"
+4. When the app is detected, press "Start measuring"
+5. Change the language
+6. Once everything recomputed, Stop measuring
+7. **Do not stop the server or close Flashlight**
 
-This will:
-- Run all performance tests multiple times with statistical analysis
-- Test BookListItem component rendering
-- Test HomeScreen rendering with 5000 books
-- Test search performance with realistic queries
-- Save baseline measurements to `.reassure/baseline.perf`
+## The fix
+Freeze the screen that you identified as a root cause of the lag.
 
-**Note**: This can take  several minutes due to the large dataset - be patient and ideally do not use your Mac for stability reasons!
-
-### Step 2: Analyze Baseline Results
-Look at the console output and note:
-- Which components take the longest to render?
-- How long does HomeScreen initial render take with 5000 books?
-- How does search performance compare to initial render?
-- What's the render count for each test?
+<details>
+  <summary>Solution</summary>
+  In `App.tsx`, pass `freezeOnBlur: true` to `HomeScreen`
+</details>
 
 
-## Part 2: Testing Performance Improvements
-
-### Step 3: Checkout `perf/exercise-5`
-
-
-### Step 4: Run Current Measurements and Compare
-```bash
-npm run test:perf
-```
-
-This will:
-- Run the same performance tests with the optimized code
-- Automatically compare against the baseline
-- Generate a detailed performance comparison report
-- Show statistical significance of changes
-
-## Part 3: Analyze the Results
-
-### Step 5: Review the Performance Report
-
-Look for these sections in the output:
-
-#### Significant Changes To Duration
-These are performance changes that are statistically significant and worth investigating:
-```
-HomeScreen initial render performance [render]: 
-45.2 ms → 32.1 ms (-13.1 ms, -29.0%) | 1 → 1
-```
-
-#### Meaningless Changes To Duration  
-These are changes within normal variance - not actionable:
-```
-BookListItem performance [render]: 
-1.3 ms → 1.4 ms (+0.1 ms, +7.7%) | 1 → 1
-```
-
-#### Render Count Changes
-Changes in how many times components render:
-```
-HomeScreen search performance [render]: 
-12.3 ms → 8.7 ms (-3.6 ms, -29.3%) | 3 → 1
-```
-
-### Step 6: Understanding the Results
-
-**Reading the Format:**
-- `45.2 ms → 32.1 ms` = Before and after render times
-- `(-13.1 ms, -29.0%)` = Absolute and percentage change
-- `| 1 → 1` = Render count before and after
-
-**What to Look For:**
-- **Negative percentages** = Performance improvements (faster)
-- **Positive percentages** = Performance regressions (slower)
-- **Render count changes** = Optimization of re-renders
-
-### Step 7: Document Your Findings
-
-Answer these questions based on the report:
-
-1. **What was the biggest performance improvement?**
-   - Which test showed the largest time reduction?
-   - What percentage improvement was achieved?
-
-2. **Were there any performance regressions?**
-   - Did any tests become slower?
-   - Are they statistically significant or just noise?
-
-3. **How did search performance change?**
-   - Compare search vs initial render improvements
-   - Did render counts change for search operations?
-
-4. **What optimizations were most effective?**
-   - Which scenarios benefited most from the changes?
-   - Are the improvements consistent across different test scenarios?
-
-## Part 4: Exploring the Optimizations
-
-### Step 8: Check What Changed
-```bash
-git diff main..perf/exercise-5
-```
-
-### Step 9: Correlate Code Changes to Performance Impact
-
-For each optimization you find:
-- Which performance test would be affected?
-- Does the measured improvement match your expectations?
-- Are there any surprising results?
-
-## Key Takeaways
-
-**Statistical Significance Matters:**
-- Only focus on "Significant Changes" - ignore meaningless variance
-- Reassure uses proper statistical analysis to filter noise
-
-**Real Data Testing:**
-- Testing with 5000 books gives realistic performance insights
-- Small optimizations can have big impacts at scale
-
-**Multiple Metrics:**
-- Render duration and render count are both important
-- Sometimes render count matters more than duration
-
-## 📚 Additional Resources
-
-- [Reassure Documentation](https://callstack.github.io/reassure/)
-- [React.memo Documentation](https://react.dev/reference/react/memo)
-- [useMemo Best Practices](https://react.dev/reference/react/useMemo)
+## Verification
+1. Repeat the **Part 1** from the Baseline
+2. Verify if highlighting is still heavily visible
+3. Go to `android` folder and run `./gradlew assembleRelease` or use the `exercise-5.apk` file from `/artifacts`
+4. Drag & Drop the new artifact
+5. Repeat the **Part 2** from the Baseline, starting from point 4. Do not open flashlight from scratch - our goal is to compare the results
+6. Compare the Flashlight results 

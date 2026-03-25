@@ -2,20 +2,23 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import performanceUtils from '../performance-utils';
+import {useTranslation} from '../hooks';
 
 const StartScreen = () => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
+
   return (
     <View style={styles.centered}>
       <Text style={styles.emoji}>🚀</Text>
-      <Text style={styles.title}>Performance Workshop</Text>
+      <Text style={styles.title}>{t('performanceWorkshop')}</Text>
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
           performanceUtils.start('app-login');
           navigation.navigate('Home');
         }}>
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>{t('login')}</Text>
       </TouchableOpacity>
     </View>
   );

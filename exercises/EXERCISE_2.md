@@ -1,72 +1,93 @@
-# Exercise 2: Profiling React Native with Chrome DevTools
+# Exercise 2: Find and remove unnecessary re-renders
 
-## Overview
-In this exercise, we'll learn how to use Chrome DevTools to profile JavaScript performance in React Native applications. We'll set up port forwarding and use Chrome's profiler to identify performance bottlenecks.
+## Exercise overview
+- Estimated time: 30mins
+- Tools required: React Native DevTools
+
+## Learning objectives
+- Learn how to use the React DevTools Profiler
+- Understand the concept of component re-renders and their performance impact
+- Identify performance bottlenecks in state updates
 
 ## Prerequisites
-- Chromium-based browser installed
-- Metro bundler running
-- Physical device or emulator with the app running
 
-## Part 1: Setting Up Chrome DevTools
+- iOS or Android app running
+- Basic understanding of React component lifecycle
 
-### Step 1: Enable JS profiling in React Native DevTools
+## Background
+
+Recently PR introducing adding to favorites was merged. Logs from monitoring tool indicate that average time of adding a book to favorite is 200ms on Android, which looks suprisingly high for such simple action.
+
+## Objective
+
+Reduce the time of adding the book to favorites.
+
+## Reproduction steps
 1. **Start the Metro server**
    ```bash
    npm run start
    ```
 
 2. Open your browser's developer tools (`j` in Metro)
-3. Press the "Settings" icon in the top right corner
-4. Go to "Experiments"
-5. Check "[React Native] Enable Performance panel
-6. Re-run the React Native DevTools
+3. Click on the "Profiler ⚛️" tab
+4. Make sure "Record why each component rendered" is enabled (gear icon → Profiler)
+5. Login into the app
+6. Start a new recording in the Profiler
+7. Click the heart icon on one book to add it to favorites
+8. Wait 2-3 seconds for any async operations to complete
+9. Stop recording
 
-## Part 2: Performance Profiling
+## Baseline
 
-### Step 2: Navigate to Performance Tab
-1. In the opened DevTools window, click on the "Performance" tab
-2. You'll see options to record performance profiles
+Analyze the profiler results. Look for the following in the profiler:
+1. **Component Re-renders**
+   - Which components re-rendered when you clicked the heart?
+   - How many times did `BookListItem` components re-render?
+   - Did the `HomeScreen` component re-render?
 
-## Part 3: Record the trace
+2. **Render Duration**
+   - What was the total time for the favorite action?
+   - Which component took the longest to render?
+   - Were there any components that rendered multiple times?
 
-### Step 3: Record a profile trace
-1. Open the app (cold start)
-2. Start recording in Chrome DevTools
-3. Press "Login"
-4. Stop recording once it navigated to the `HomeScreen`
-5. Download the profile trace
+3. **Render Reasons**
+   - Click on individual components to see why they rendered
+   - Look for "Props changed", "State changed", "Context changed"
+4. **Baseline**: Note down the recorded commmit time
+5. **Baseline**: Note down the `toggle-favorite` metric and ID of the item
 
-### Step 4: Analyze the profile trace
-1. Open https://www.speedscope.app/
-2. Upload recorded profile trace
-3. Analyze it to see where does it spend the most of time
-4. Note the key findings and results
+## The fix
+Narrow down the re-renders to a single item of the list.
 
-### What to Look For:
-- **Long Tasks**: long JavaScript execution blocks
-- **Frequent Re-renders**: Multiple renders of the same components
+<details>
+  <summary>Solution</summary>
+  
+  1. Remove the `favoriteBookIds`:
+  ```diff
+interface BookListItemProps {
+    id: string;
+-   favoriteBookIds: string[];
+}
 
-## Part 4: Optimize the code and re-profile
+-   const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
++   const BookListItem = ({id}: BookListItemProps) => {
+  ```
+  2. Use selector to determine if a book is in favorites 
+  ```diff
+-  const isFavorite = useMemo(() => {
+-    const isBookFavorite = favoriteBookIds.includes(id);
+-
+-    return isBookFavorite;
+-  }, [favoriteBookIds, id]);
++  const isFavorite = useAppSelector(state => selectIsBookFavorite(state, id));
+  ```
+  3. Remove all remaining occurrences of `favoriteBookIds` props in `BookListItem` calls
+</details>
 
-### Step 5: Implement Optimizations
-1. **Checkout branch `perf/exercise-2`**
+## Verification
 
-### Step 6: Re-profile
-1. Repeat the profiling process
-
-### Step 7: Compare the results with the baseline
-1. Compare the new profile with the original
-2. Look for improvements in:
-   - Reduced JavaScript execution time
-   - Fewer long tasks
-
-## Troubleshooting
-
-### Common Issues:
-- **DevTools not connecting**: Check that Metro is running
-- **Profile data missing**: Ensure you're interacting with the app during recording
-
-## Resources
-- [React Native Performance Guide](https://reactnative.dev/docs/performance)
-- [Metro Bundler Configuration](https://facebook.github.io/metro/docs/configuration)
+- Re-run the same measurement tests
+- Analyze the profile trace. What changed?
+- Record new metrics and compare with the baseline:
+    - `toggle-favorite` for the same item
+    - Commit time (x % improvement/regression)

@@ -1,85 +1,88 @@
-# Exercise 4: Mobile Performance Profiling with Flashlight
+# Exercise 4: Validate the production builds
 
-## Overview
-Learn to measure FPS, CPU and RAM usage using [Flashlight](https://flashlight.dev/), a Lighthouse-like tool for mobile apps. This exercise covers running measurements, and comparing before/after optimization results.
+## Exercise overview
+- Estimated time: 15mins
+- Tools required: React Native Release Profiler, SpeedScope
 
-## Why Use Flashlight?
-- **Real lower-end device testing**: See performance on actual hardware that matches your users
-- **No installation required**: Works with any app (Native, RN, Flutter), even production builds
-- **Deterministic measurements**: Averages results over multiple iterations 
-- **Multiple metrics**: FPS, CPU, RAM usage combined into a performance score
-- **Spot regressions early**: Catch performance issues before users do
+## Learning objectives
+- Learn how to profile the app in the production
+- Learn what is symbolication
+- Learn the differences between debug and release builds
 
 ## Prerequisites
-- Android release build of the app
-- Flashlight installed
-- Maestro installed
-- Android device or emulator running
 
-## Part 1: Baseline Measurements
+- Android app running
 
-### Step 1: Drag and drop `main.apk` file from `/artifacts` folder to Android emulator
-<attached video>
+## Background
 
-### Step 2: Analyze the `flows/search-books.yml` file
+A developer reported that while working on a feature, he noticed logging into the app is slow on the Android emulator. He shared that `app-login` metric is around 2 seconds.
 
-### Step 3: Run the automated baseline measurements on the app:
-```bash
-flashlight test --bundleId com.performanceworkshops --testCommand "maestro test flows/search-books.yml" --resultsFilePath baseline.json --iterationCount 3
+## Objective
+
+Verify if the report from the developer is valid.
+
+## Reproduction steps
+
+1. Open the app (cold start)
+2. Go to Performance tab in React Devtools
+3. Start recording
+4. Login into the app
+5. Stop profiling
+6. Download the profile
+
+## Baseline
+
+1. Open https://www.speedscope.app/
+2. Upload recorded profile trace
+3. Analyze the output
+4. **Baseline**: Note down the time spent JS thread being blocked by the action
+5. **Baseline**: Note down the `app-login` result from the console
+
+
+## Verification
+1. Apply the diff to the codebase:
+```diff
+diff --git a/performance-utils.ts b/performance-utils.ts
+index 6eee966..15f82b9 100644
+--- a/performance-utils.ts
++++ b/performance-utils.ts
+@@ -1,4 +1,5 @@
+ // Performance measurement utilities with start/stop API
++import { Alert } from 'react-native';
+ import performance, {PerformanceObserver} from 'react-native-performance';
+ 
+ // Observe native launch marks to derive higher-level measures
+@@ -64,7 +65,10 @@ const performanceUtils = {
+ 
+       try {
+         // Measure between start and end marks
+-        performance.measure(measureName, startMarkName, endMarkName);
++        const measure = performance.measure(measureName, startMarkName, endMarkName);
++        if(measureName === 'app-login') {
++          Alert.alert(measure.duration.toString());
++        }
+ 
+         // Get the measurement and log it
+         const entries = performance.getEntriesByName(measureName);
 ```
-
-For stability reasons, do not use your Mac until it's done
-
-## Part 2: Measurements after improvements
-
-### Step 4: Checkout `perf/exercise-4` branch
-
-### Step 5: Drag and drop `exercise-4.apk` file from `/artifacts` folder to Android emulator
-
-### Step 6: Run measurements again
-
-```bash
-flashlight test --bundleId com.performanceworkshops --testCommand "maestro test flows/search-books.yml" --resultsFilePath exercise-4.json --iterationCount 3
+2. Build the app in release mode:
+```shell
+cd android
+./gradlew assembleRelease
 ```
-
-For stability reasons, do not use your Mac until it's done
-
-## Part 3: Analyze results
-
-### Step 5: Open comparison of the recordings
-
-```bash
-flashlight report baseline.json exercise-4.json
+3. Drag and drop the generated `.apk` in the emulator (you can also use `artifacts/exercise-4.apk`)
+4. Open the app and go to Settings screen
+5. Enable "Show Debug FAB" and go back to login screen
+6. Open debug FAB, start the profiling
+7. Once you are navigated, validate the `app-login` time in the Alert
+8. Open debug FAB again and stop profiling
+9. In terminal, run
+```shell
+npm run bundle:android
 ```
-
-Look for these key metrics in your reports:
-- **Performance Score**: Overall score (0-100)
-- **Average FPS**: Frame rate during scrolling
-- **CPU Usage**: Processor utilization %
-- **RAM Usage**: Memory consumption
-
-**Take notes**:
-- What's the average performance score across 3 runs?
-- Are there consistent FPS drops during scrolling?
-- How much RAM is being used?
-- Any CPU spikes during scroll interactions?
-
-## Expected Outcomes
-
-After completing this exercise, you should understand:
-
-- How to set up automated performance testing with Flashlight.dev
-- How to measure and compare mobile app performance objectively
-- The relationship between code changes and measurable performance metrics
-
-### Common Issues:
-- **CLI not found**: Ensure `@flashlight.dev/cli` is installed globally
-- **Device not detected**: Check `adb devices` and ensure device is connected
-- **Inconsistent results**: Run more iterations, check for background processes, ensure device stays awake
-- **No performance difference**: Verify you're using correct build
-
-## 📚 Resources
-
-- [Flashlight.dev Documentation](https://flashlight.dev/)
-- [React Native Performance Guide](https://reactnative.dev/docs/performance)
-- [Mobile Performance Testing Best Practices](https://web.dev/mobile-performance-testing/)
+10. In terminal, run
+```shell
+npm run downloadtrace:android
+```
+11. The profile will be saved in the root of your project
+12. Upload it into SpeedScope and compare the output with the one from debug

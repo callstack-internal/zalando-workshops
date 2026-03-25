@@ -1,101 +1,64 @@
-# Exercise 1: Using React DevTools to Analyze "Add to Favorites" Performance
+# Exercise 1: Analyze and reduce bundle size of the app
 
-## Overview
-In this exercise, you'll use React DevTools Profiler to measure and analyze what happens when a user adds a book to their favorites. This will help you identify performance bottlenecks, unnecessary re-renders, and optimization opportunities.
+## Exercise overview
+- Estimated time: 30 mins
+- Tools required: React Native DevTools, Bundle Discovery
 
-## Learning Objectives
-- Learn how to use the React DevTools Profiler
-- Understand the concept of component re-renders and their performance impact
-- Identify performance bottlenecks in state updates
-- Analyze the cascade effect of state changes across components
+## Learning objectives
+- Learn how to use tool to analyze the bundle size
+- Learn how to reduce the bundle size
+- Understand how it impacts the app load time
 
 ## Prerequisites
-- iOS or Android app running
-- Basic understanding of React component lifecycle
 
-## Part 1: Baseline Measurement
+- Android app in dev mode
 
-### Step 1: Open React DevTools
-1. **Start the Metro server**
-   ```bash
-   npm run start
-   ```
+## Background
 
-2. Open your browser's developer tools (`j` in Metro)
-3. Click on the "Profiler ⚛️" tab
-4. Make sure "Record why each component rendered" is enabled (gear icon → Profiler)
+Monitoring flagged a spike in `runJsBundle` over the past week on Android platform. Looking at last week’s release notes, the increase lines up with the build that swapped `moment.js` for `date-fns`. 
 
-### Step 2: Record the Favorite Action
-1. **Start a new recording** in the Profiler
-2. **Click the heart icon** on one book to add it to favorites
-3. **Wait 2-3 seconds** for any async operations to complete
-4. **Stop recording**
-5. **Download the profile trace**
+## Objective
 
-### Step 3: Analyze the Favorite Action Results
-Look for the following in the profiler:
+Speed up the JS bundle load time without reverting the entire migration to `moment.js`
 
-1. **Component Re-renders**
-   - Which components re-rendered when you clicked the heart?
-   - How many times did `BookListItem` components re-render?
-   - Did the `HomeScreen` component re-render?
+## Reproduction steps
 
-2. **Render Duration**
-   - What was the total time for the favorite action?
-   - Which component took the longest to render?
-   - Were there any components that rendered multiple times?
+1. Open the app (cold start) on **Android**
+2. Verify the `runJsBundle` metric is available
 
-3. **Render Reasons**
-   - Click on individual components to see why they rendered
-   - Look for "Props changed", "State changed", "Context changed"
+## Baseline (measure before)
 
-## Part 3: Understanding the Performance Issues
+1. Open the app (cold start)
+2. Open React DevTools from Metro
+3. **Baseline:** Note down the `runJsBundle` result
+4. Run the Android bundle command: `npm run bundle:android`
+5. Run the bundle discovery command: `npm run bundle:discover`
+6. **Baseline:** Note down the bundle size
+7. **Baseline:** Note down the size of `date-fns` in the bundle
 
-### Step 5: Analyze the Current Implementation
+## The fix
+1. Look for `date-fns` imports in the app
+2. Rewrite the `date-fns` named imports into path imports
 
-Look at the current code structure:
+<details>
+  <summary>Solution</summary>
+  
+  Change named import:
+  ```
+    import {differenceInDays, format, parseISO} from 'date-fns';
+  ```
+  Into path import:
+  ```
+    import {differenceInDays} from 'date-fns/differenceInDays';
+    import {format} from 'date-fns/format';
+    import {parseISO} from 'date-fns/parseISO';
+  ```
+</details>
 
-**In `HomeScreen.tsx`:**
-```typescript
-const favoriteBookIds = useAppSelector(
-    state => state.favorites.favoriteBookIds,
-  );
-```
+## Verification
 
-```typescript
-<BookListItem id={item} favoriteBookIds={favoriteBookIds} />
-```
-
-## Part 4: Implementing and measuring improvements
-
-### Step 6: Implement performance improvements
-
-1. **Checkout branch `perf/exercise-1`**
-
-### Step 7: Record the Favorite action again
-1. **Record a profile trace again**
-2. **Analyze the profile trace. What changed?**
-3. **Download the profile trace**
-
-
-## Part 5: Compare results from React Profiler
-
-### Step 7: Use online tool to compare the results
-1. Go to https://kacper-mikolajczak.github.io/rcc/
-2. Upload both downloaded profile traces
-3. Analyze the output of the report
-
-## Expected Outcomes
-
-After completing this exercise, you should understand:
-
-- How to use React DevTools Profiler effectively
-- Why prop changes cause cascading re-renders
-
----
-
-## 📚 Additional Resources
-
-- [React DevTools Profiler Documentation](https://react.dev/learn/react-developer-tools#profiler)
-- [Optimizing Performance - React Docs](https://react.dev/learn/render-and-commit)
-- [Redux Performance Patterns](https://redux.js.org/tutorials/fundamentals/part-6-async-logic#performance-and-normalizing-data)
+- Re-run the same measurement tests
+- Record new metrics and compare with the baseline:
+    - `runJsBundle`
+    - bundle size: x mb (x % improvement/regression)
+    - `date-fns` size: x kb (x % improvement/regression)
