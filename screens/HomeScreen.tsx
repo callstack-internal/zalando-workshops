@@ -102,6 +102,7 @@ export default function HomeScreen() {
           return b.votes - a.votes;
       }
     });
+    performanceUtils.stop(`sort-${sortBy}`);
 
     performanceUtils.stop('search-filter');
     return sortedIds;
