@@ -1,0 +1,8 @@
+appId: com.performanceworkshops
+---
+- launchApp
+- assertVisible: "Login"
+- tapOn: "Login"
+- assertVisible: "Books"
+- tapOn: "Title"
+- assertVisible: "1984"
