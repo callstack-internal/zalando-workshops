@@ -73,6 +73,7 @@ function AppContent() {
             options={{
               title: t('booksHeader'),
               headerRight: () => <HeaderMenu />,
+              freezeOnBlur: true,
             }}
           />
           <Stack.Screen
