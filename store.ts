@@ -3,31 +3,57 @@ const books: Book[] = require('./mocks/books.json');
 const authors: Author[] = require('./mocks/authors.json');
 const comments: Comment[] = require('./mocks/comments.json');
 
-import {configureStore, createSlice, createSelector, PayloadAction} from '@reduxjs/toolkit';
+import {configureStore, createSlice, createSelector, PayloadAction, createEntityAdapter} from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Language} from './translations';
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
+// Create entity adapters
+const booksAdapter = createEntityAdapter<Book>();
+
+const authorsAdapter = createEntityAdapter<Author>();
+
+const commentsAdapter = createEntityAdapter<Comment>();
+
+// Build byBookId index for fast comment lookups
+const commentsByBookId: Record<string, string[]> = {};
+comments.forEach(comment => {
+  if (!commentsByBookId[comment.bookId]) {
+    commentsByBookId[comment.bookId] = [];
+  }
+  commentsByBookId[comment.bookId].push(comment.id);
+});
+
+// Initialize with normalized data
 const booksSlice = createSlice({
   name: 'books',
-  initialState: books,
+  initialState: booksAdapter.getInitialState({}, books),
   reducers: {},
 });
 
 const authorsSlice = createSlice({
   name: 'authors',
-  initialState: authors,
+  initialState: authorsAdapter.getInitialState({}, authors),
   reducers: {},
 });
 
 const commentsSlice = createSlice({
   name: 'comments',
-  initialState: comments,
+  initialState: commentsAdapter.getInitialState({
+    byBookId: commentsByBookId,
+  }, comments),
   reducers: {
     addComment: (state, action: PayloadAction<Comment>) => {
-      state.push(action.payload);
+      const comment = action.payload;
+      commentsAdapter.addOne(state, comment);
+
+      // Update byBookId index
+      if (!state.byBookId[comment.bookId]) {
+        state.byBookId[comment.bookId] = [];
+      }
+      state.byBookId[comment.bookId].push(comment.id);
     },
   },
 });
@@ -60,27 +86,32 @@ const settingsSlice = createSlice({
 const favoritesSlice = createSlice({
   name: 'favorites',
   initialState: {
-    favoriteBookIds: [] as string[],
+    favoriteBookIds: {} as Record<string, true>,
   },
   reducers: {
     toggleFavorite: (state, action) => {
       const bookId = action.payload;
-      const isFavorite = state.favoriteBookIds.includes(bookId);
+      const isFavorite = state.favoriteBookIds[bookId];
 
       if (isFavorite) {
-        state.favoriteBookIds = state.favoriteBookIds.filter(id => id !== bookId);
+        delete state.favoriteBookIds[bookId];
       } else {
-        state.favoriteBookIds.push(bookId);
+        state.favoriteBookIds[bookId] = true;
       }
 
-      // Persist to AsyncStorage
+      // Persist to AsyncStorage (convert to array for storage)
       AsyncStorage.setItem(
         'favoriteBookIds',
-        JSON.stringify(state.favoriteBookIds),
+        JSON.stringify(Object.keys(state.favoriteBookIds)),
       );
     },
     setFavoriteBookIds: (state, action) => {
-      state.favoriteBookIds = action.payload;
+      // Convert array to object for O(1) lookups
+      const ids = action.payload as string[];
+      state.favoriteBookIds = {};
+      ids.forEach(id => {
+        state.favoriteBookIds[id] = true;
+      });
     },
   },
 });
@@ -100,32 +131,41 @@ export const store = configureStore({
 });
 
 /** Books selectors */
-export const selectBooks = (state: RootState): Book[] => state.books;
-export const selectBookById = (
-  state: RootState,
-  id: string,
-): Book | undefined => state.books.find(book => book.id === id);
+// Get entity adapter selectors
+const booksSelectors = booksAdapter.getSelectors<RootState>(state => state.books);
+export const selectBooks = booksSelectors.selectAll;
+export const selectBookById = booksSelectors.selectById;
+// Export raw selectors for component-level optimization
+export const selectBooksById = (state: RootState) => state.books.entities;
+export const selectBookIds = (state: RootState) => state.books.ids;
 
 /** Authors selectors */
-export const selectAuthors = (state: RootState): Author[] => state.authors;
-export const selectAuthorById = (
-  state: RootState,
-  id: string,
-): Author | undefined => state.authors.find(author => author.id === id);
+const authorsSelectors = authorsAdapter.getSelectors<RootState>(state => state.authors);
+export const selectAuthors = authorsSelectors.selectAll;
+export const selectAuthorById = authorsSelectors.selectById;
+// Export raw selectors for component-level optimization
+export const selectAuthorsById = (state: RootState) => state.authors.entities;
 
 /** Comments selectors */
-export const selectComments = (state: RootState) => state.comments;
+const commentsSelectors = commentsAdapter.getSelectors<RootState>(state => state.comments);
+export const selectComments = commentsSelectors.selectAll;
+
+// Optimized selector using byBookId index - O(1) lookup instead of filtering
 export const selectCommentsByBookId = createSelector(
-  [selectComments, (state, bookId) => bookId],
-  (allComments, bookId) =>
-    Object.values(allComments).filter(comment => comment.bookId === bookId),
+  [
+    (state: RootState) => state.comments.entities,
+    (state: RootState) => state.comments.byBookId,
+    (_state: RootState, bookId: string) => bookId,
+  ],
+  (commentsById, byBookIdIndex, bookId) => {
+    const commentIds = byBookIdIndex[bookId] || [];
+    return commentIds.map(id => commentsById[id]);
+  },
 );
+
 export const selectLast10CommentsByBookId = createSelector(
-  [selectComments, (state, bookId) => bookId],
-  (allComments, bookId) => {
-    const bookComments = Object.values(allComments).filter(
-      comment => comment.bookId === bookId,
-    );
+  [selectCommentsByBookId],
+  (bookComments) => {
     return bookComments.slice(-10);
   },
 );
@@ -144,6 +184,8 @@ export const selectLanguage = (state: RootState): Language =>
 export const selectIsBookFavorite = (
   state: RootState,
   bookId: string,
-): boolean => state.favorites.favoriteBookIds.includes(bookId);
+): boolean => state.favorites.favoriteBookIds[bookId] === true;
+
+// Return array of favorite IDs for compatibility
 export const selectFavoriteBookIds = (state: RootState): string[] =>
-  state.favorites.favoriteBookIds;
+  Object.keys(state.favorites.favoriteBookIds);
