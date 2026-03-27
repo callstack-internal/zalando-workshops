@@ -85,6 +85,7 @@ export default function HomeScreen() {
       : bookIds;
 
     const sortedIds = [...filteredIds].sort((aId, bId) => {
+      performanceUtils.start(`sort-${sortBy}`);
       const a = booksById[aId];
       const b = booksById[bId];
 
@@ -109,6 +110,7 @@ export default function HomeScreen() {
           return b.votes - a.votes;
       }
     });
+    performanceUtils.stop(`sort-${sortBy}`);
 
     performanceUtils.stop('search-filter');
     return sortedIds;
