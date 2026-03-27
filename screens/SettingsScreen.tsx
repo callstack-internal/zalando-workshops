@@ -3,14 +3,27 @@ import {View, Text, Switch, StyleSheet, TouchableOpacity} from 'react-native';
 import {useAppSelector, useAppDispatch, useTranslation} from '../hooks';
 import {selectFabEnabled, toggleFab, setLanguage} from '../store';
 import {Language} from '../translations';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from './types';
+import {CommonActions} from '@react-navigation/native';
 
-const SettingsScreen = () => {
+type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+
+const SettingsScreen = ({navigation}: Props) => {
   const dispatch = useAppDispatch();
   const fabEnabled = useAppSelector(selectFabEnabled);
   const {t, language} = useTranslation();
 
   const handleLanguageChange = (newLanguage: Language) => {
     dispatch(setLanguage(newLanguage));
+
+    // Reset navigation stack to Home screen
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{name: 'Home'}],
+      }),
+    );
   };
 
   return (
