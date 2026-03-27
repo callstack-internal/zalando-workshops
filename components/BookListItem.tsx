@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -9,6 +9,7 @@ import {
   selectAuthorById,
   selectCommentsByBookId,
   toggleFavorite,
+  selectIsBookFavorite,
 } from '../store';
 import {formatDate} from '../utils';
 import performanceUtils from '../performance-utils';
@@ -17,10 +18,9 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface BookListItemProps {
   id: string;
-  favoriteBookIds: string[];
 }
 
-const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
+const BookListItem = ({id}: BookListItemProps) => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
   const {t} = useTranslation();
@@ -31,11 +31,7 @@ const BookListItem = ({id, favoriteBookIds}: BookListItemProps) => {
   const comments = useAppSelector(state => selectCommentsByBookId(state, id));
   const lastComment = comments[comments.length - 1];
 
-  const isFavorite = useMemo(() => {
-    const isBookFavorite = favoriteBookIds.includes(id);
-
-    return isBookFavorite;
-  }, [favoriteBookIds, id]);
+  const isFavorite = useAppSelector(state => selectIsBookFavorite(state, id));
 
   useEffect(() => {
     if(isFavorite) {
